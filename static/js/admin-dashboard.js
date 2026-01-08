@@ -6,7 +6,7 @@ let currentMonth = new Date().getMonth();
 let currentYear = new Date().getFullYear();
 
 // Initialize dashboard
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Load user data from localStorage
     const userData = localStorage.getItem('userData');
     if (userData) {
@@ -16,20 +16,20 @@ document.addEventListener('DOMContentLoaded', function() {
         // Redirect to login if no user data
         window.location.href = '/';
     }
-    
+
     // Initialize charts
     initializeCharts();
-    
+
     // Load initial data
     loadDashboardStats();
     loadStudentsData();
     loadFacultyData();
     loadCoursesData();
     loadPublishedNotices();
-    
+
     // Initialize calendar
     generateCalendar();
-    
+
     // Setup form handlers
     setupFormHandlers();
 });
@@ -46,22 +46,22 @@ function showSection(sectionId) {
     // Hide all sections
     const sections = document.querySelectorAll('.content-section');
     sections.forEach(section => section.classList.remove('active'));
-    
+
     // Show selected section
     const targetSection = document.getElementById(sectionId);
     if (targetSection) {
         targetSection.classList.add('active');
     }
-    
+
     // Update menu items
     const menuItems = document.querySelectorAll('.menu-item');
     menuItems.forEach(item => item.classList.remove('active'));
-    
+
     const activeMenuItem = document.querySelector(`[onclick="showSection('${sectionId}')"]`);
     if (activeMenuItem) {
         activeMenuItem.classList.add('active');
     }
-    
+
     // Update page title
     const titles = {
         'dashboard': 'Admin Dashboard',
@@ -74,11 +74,11 @@ function showSection(sectionId) {
         'fees': 'Fee Management',
         'reports': 'Reports & Analytics'
     };
-    
+
     document.getElementById('pageTitle').textContent = titles[sectionId] || 'Admin Dashboard';
-    
+
     // Load section-specific data
-    switch(sectionId) {
+    switch (sectionId) {
         case 'students':
             loadStudentsData();
             break;
@@ -129,7 +129,7 @@ function initializeCharts() {
             }
         });
     }
-    
+
     // Department Chart
     const departmentCtx = document.getElementById('departmentChart');
     if (departmentCtx) {
@@ -198,7 +198,7 @@ function loadStudentsData() {
         { rollNo: '2023004', name: 'Sarah Wilson', department: 'CE', semester: 1, cgpa: 9.1, status: 'Active' },
         { rollNo: '2023005', name: 'David Brown', department: 'CSE', semester: 5, cgpa: 7.5, status: 'Active' }
     ];
-    
+
     updateStudentsTable(mockStudents);
 }
 
@@ -206,9 +206,9 @@ function loadStudentsData() {
 function updateStudentsTable(students) {
     const tableBody = document.getElementById('studentsTableBody');
     if (!tableBody) return;
-    
+
     tableBody.innerHTML = '';
-    
+
     students.forEach(student => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -244,9 +244,42 @@ function filterStudents() {
 }
 
 // Load faculty data
+// Load faculty data
 function loadFacultyData() {
-    // Mock implementation - faculty cards are already in HTML
-    console.log('Faculty data loaded');
+    fetch('/api/admin/faculty')
+        .then(response => response.json())
+        .then(data => {
+            const grid = document.querySelector('.faculty-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            data.forEach(faculty => {
+                const card = document.createElement('div');
+                card.className = 'faculty-card';
+                card.innerHTML = `
+                    <div class="faculty-avatar">
+                        <img src="${faculty.photo_url}" alt="Faculty">
+                    </div>
+                    <div class="faculty-info">
+                        <h4>${faculty.full_name}</h4>
+                        <p>${faculty.department}</p>
+                        <p>${faculty.designation}</p>
+                        <span class="experience">${faculty.experience_years} years experience</span>
+                        <div class="faculty-assignments" style="margin-top: 8px; font-size: 0.85em; color: #666;">
+                            <div><i class="fas fa-chalkboard"></i> ${faculty.assigned_classes || 'No classes'}</div>
+                            <div><i class="fas fa-layer-group"></i> ${faculty.assigned_semesters || 'No semester'}</div>
+                            <div><i class="fas fa-book"></i> ${faculty.assigned_subjects || 'No subjects'}</div>
+                        </div>
+                    </div>
+                    <div class="faculty-actions">
+                        <button onclick="editFaculty(${faculty.id})">Edit</button>
+                        <button onclick="viewFacultyDetails(${faculty.id})">View Details</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        })
+        .catch(error => console.error('Error loading faculty:', error));
 }
 
 // Load courses data
@@ -262,7 +295,7 @@ function loadAssignmentsData() {
         { subject: 'Algorithms', faculty: 'Prof. John Smith', department: 'CSE', semester: 5, year: '2025-26' },
         { subject: 'Digital Electronics', faculty: 'Dr. Sarah Johnson', department: 'ECE', semester: 3, year: '2025-26' }
     ];
-    
+
     updateAssignmentsTable(mockAssignments);
 }
 
@@ -270,9 +303,9 @@ function loadAssignmentsData() {
 function updateAssignmentsTable(assignments) {
     const tableBody = document.getElementById('assignmentsTableBody');
     if (!tableBody) return;
-    
+
     tableBody.innerHTML = '';
-    
+
     assignments.forEach((assignment, index) => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -297,7 +330,7 @@ function loadFeeData() {
         { course: 'ECE', semester: 3, tuition: 48000, lab: 4500, other: 2000, total: 54500 },
         { course: 'ME', semester: 7, tuition: 45000, lab: 3000, other: 2000, total: 50000 }
     ];
-    
+
     updateFeeStructureTable(mockFeeStructure);
 }
 
@@ -305,9 +338,9 @@ function loadFeeData() {
 function updateFeeStructureTable(feeStructure) {
     const tableBody = document.getElementById('feeStructureBody');
     if (!tableBody) return;
-    
+
     tableBody.innerHTML = '';
-    
+
     feeStructure.forEach((fee, index) => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -329,21 +362,21 @@ function updateFeeStructureTable(feeStructure) {
 function generateCalendar() {
     const calendarGrid = document.getElementById('calendarGrid');
     const currentMonthEl = document.getElementById('currentMonth');
-    
+
     if (!calendarGrid || !currentMonthEl) return;
-    
+
     const monthNames = [
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
     ];
-    
+
     currentMonthEl.textContent = `${monthNames[currentMonth]} ${currentYear}`;
-    
+
     const firstDay = new Date(currentYear, currentMonth, 1).getDay();
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-    
+
     calendarGrid.innerHTML = '';
-    
+
     // Add day headers
     const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     dayHeaders.forEach(day => {
@@ -357,32 +390,32 @@ function generateCalendar() {
         dayHeader.style.color = 'white';
         calendarGrid.appendChild(dayHeader);
     });
-    
+
     // Add empty cells for days before month starts
     for (let i = 0; i < firstDay; i++) {
         const emptyDay = document.createElement('div');
         emptyDay.className = 'calendar-day other-month';
         calendarGrid.appendChild(emptyDay);
     }
-    
+
     // Add days of the month
     const today = new Date();
     for (let day = 1; day <= daysInMonth; day++) {
         const dayElement = document.createElement('div');
         dayElement.className = 'calendar-day';
         dayElement.textContent = day;
-        
-        if (currentYear === today.getFullYear() && 
-            currentMonth === today.getMonth() && 
+
+        if (currentYear === today.getFullYear() &&
+            currentMonth === today.getMonth() &&
             day === today.getDate()) {
             dayElement.classList.add('today');
         }
-        
+
         // Add mock events
         if (day === 15 || day === 20) {
             dayElement.classList.add('has-event');
         }
-        
+
         calendarGrid.appendChild(dayElement);
     }
 }
@@ -411,9 +444,9 @@ function setupFormHandlers() {
     // Notice form handler
     const noticeForm = document.getElementById('noticeForm');
     if (noticeForm) {
-        noticeForm.addEventListener('submit', function(e) {
+        noticeForm.addEventListener('submit', function (e) {
             e.preventDefault();
-            
+
             const noticeData = {
                 title: document.getElementById('noticeTitle').value,
                 notice_type: document.getElementById('noticeType').value,
@@ -422,7 +455,7 @@ function setupFormHandlers() {
                 content: document.getElementById('noticeContent').value,
                 expiry_date: document.getElementById('expiryDate').value
             };
-            
+
             fetch('/api/notices/publish', {
                 method: 'POST',
                 headers: {
@@ -430,29 +463,29 @@ function setupFormHandlers() {
                 },
                 body: JSON.stringify(noticeData)
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showSuccessModal('Notice Published', 'Notice has been published successfully and notifications sent to target audience.');
-                    noticeForm.reset();
-                    loadPublishedNotices();
-                } else {
-                    showErrorModal('Error', data.message || 'Failed to publish notice');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showErrorModal('Error', 'An error occurred while publishing the notice');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showSuccessModal('Notice Published', 'Notice has been published successfully and notifications sent to target audience.');
+                        noticeForm.reset();
+                        loadPublishedNotices();
+                    } else {
+                        showErrorModal('Error', data.message || 'Failed to publish notice');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showErrorModal('Error', 'An error occurred while publishing the notice');
+                });
         });
     }
-    
+
     // Target audience change handler
     const targetAudience = document.getElementById('targetAudience');
     const departmentGroup = document.getElementById('departmentGroup');
-    
+
     if (targetAudience && departmentGroup) {
-        targetAudience.addEventListener('change', function() {
+        targetAudience.addEventListener('change', function () {
             if (this.value === 'department') {
                 departmentGroup.style.display = 'block';
             } else {
@@ -478,15 +511,15 @@ function loadPublishedNotices() {
 function updatePublishedNoticesDisplay(notices) {
     const container = document.querySelector('.notices-list');
     if (!container) return;
-    
+
     container.innerHTML = '';
-    
+
     notices.forEach(notice => {
         const noticeItem = document.createElement('div');
         noticeItem.className = 'notice-item';
-        
+
         const createdDate = new Date(notice.created_at).toLocaleDateString();
-        
+
         noticeItem.innerHTML = `
             <div class="notice-header">
                 <h4>${notice.title}</h4>
@@ -501,7 +534,7 @@ function updatePublishedNoticesDisplay(notices) {
                 </div>
             </div>
         `;
-        
+
         container.appendChild(noticeItem);
     });
 }
@@ -519,19 +552,19 @@ function showErrorModal(title, message) {
 // Show confirmation modal
 function showConfirmModal(title, message, onConfirm) {
     const modal = createModal(title, message, 'confirm');
-    
+
     const confirmBtn = modal.querySelector('.confirm-btn');
     const cancelBtn = modal.querySelector('.cancel-btn');
-    
-    confirmBtn.onclick = function() {
+
+    confirmBtn.onclick = function () {
         onConfirm();
         closeModal(modal);
     };
-    
-    cancelBtn.onclick = function() {
+
+    cancelBtn.onclick = function () {
         closeModal(modal);
     };
-    
+
     document.body.appendChild(modal);
     modal.style.display = 'block';
 }
@@ -541,7 +574,7 @@ function showModal(title, message, type = 'info') {
     const modal = createModal(title, message, type);
     document.body.appendChild(modal);
     modal.style.display = 'block';
-    
+
     // Auto close after 3 seconds for success/error
     if (type === 'success' || type === 'error') {
         setTimeout(() => {
@@ -554,39 +587,40 @@ function showModal(title, message, type = 'info') {
 function createModal(title, message, type) {
     const modal = document.createElement('div');
     modal.className = 'modal admin-modal';
-    
+
     const iconClass = {
         'success': 'fas fa-check-circle',
         'error': 'fas fa-exclamation-circle',
         'confirm': 'fas fa-question-circle',
         'info': 'fas fa-info-circle'
     }[type] || 'fas fa-info-circle';
-    
+
     const iconColor = {
         'success': '#27ae60',
         'error': '#e74c3c',
         'confirm': '#f39c12',
         'info': '#667eea'
     }[type] || '#667eea';
-    
+
     modal.innerHTML = `
         <div class="modal-content admin-modal-content">
-            <div class="modal-header">
+            <div class="modal-header" style="position: relative;">
+                <span class="close-modal" onclick="closeModal(this.closest('.modal'))" style="position: absolute; right: 0; top: 0; font-size: 1.5rem; cursor: pointer;">&times;</span>
                 <i class="${iconClass}" style="color: ${iconColor}; font-size: 2rem; margin-bottom: 1rem;"></i>
                 <h3>${title}</h3>
             </div>
             <div class="modal-body">
-                <p>${message}</p>
+                ${message}
             </div>
             <div class="modal-footer">
-                ${type === 'confirm' ? 
-                    '<button class="confirm-btn">Confirm</button><button class="cancel-btn">Cancel</button>' :
-                    '<button class="ok-btn" onclick="closeModal(this.closest(\'.modal\'))">OK</button>'
-                }
+                ${type === 'confirm' ?
+            '<button class="confirm-btn">Confirm</button><button class="cancel-btn">Cancel</button>' :
+            '<button class="ok-btn" onclick="closeModal(this.closest(\'.modal\'))">OK</button>'
+        }
             </div>
         </div>
     `;
-    
+
     return modal;
 }
 
@@ -617,7 +651,7 @@ function deleteStudent(rollNo) {
     showConfirmModal(
         'Delete Student',
         `Are you sure you want to delete student ${rollNo}? This action cannot be undone.`,
-        function() {
+        function () {
             // Perform deletion
             showSuccessModal('Student Deleted', `Student ${rollNo} has been successfully deleted from the system.`);
         }
@@ -629,15 +663,256 @@ function importStudents() {
 }
 
 function addFaculty() {
-    showModal('Add Faculty', 'Faculty registration form would include personal details, qualifications, and subject expertise.', 'info');
+    const formHtml = `
+        <form id="addFacultyForm" class="add-form">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="addName" required placeholder="Dr. Jane Doe">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="addEmail" required placeholder="jane.doe@college.edu">
+            </div>
+            <div class="form-group">
+                <label>Department</label>
+                <select id="addDept" required>
+                     <option value="" disabled selected>Select Department</option>
+                     <option value="Computer Science">Computer Science</option>
+                     <option value="Electronics">Electronics</option>
+                     <option value="Mechanical">Mechanical</option>
+                     <option value="Civil">Civil</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Designation</label>
+                <input type="text" id="addDesignation" required placeholder="Assistant Professor">
+            </div>
+             <div class="form-group">
+                <label>Specialization</label>
+                <input type="text" id="addSpecialization" placeholder="e.g. AI/ML">
+            </div>
+            <div class="form-group">
+                <label>Experience (Years)</label>
+                <input type="number" id="addExp" min="0" value="0">
+            </div>
+            <div class="form-group">
+                <label>Assigned Classes/Divisions</label>
+                <input type="text" id="addClasses" placeholder="e.g. CSE-A, ECE-B">
+            </div>
+            <div class="form-group">
+                <label>Assigned Semesters</label>
+                <input type="text" id="addSemesters" placeholder="e.g. 1st, 3rd, 5th">
+            </div>
+            <div class="form-group">
+                <label>Assigned Subjects</label>
+                <input type="text" id="addSubjects" placeholder="e.g. Data Structures, OS">
+            </div>
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button type="submit" class="save-btn" style="background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%;">Add Faculty</button>
+            </div>
+        </form>
+    `;
+
+    showModal('Add New Faculty', formHtml, 'info');
+
+    setTimeout(() => {
+        const form = document.getElementById('addFacultyForm');
+        if (form) {
+            form.onsubmit = (e) => {
+                e.preventDefault();
+                const facultyData = {
+                    full_name: document.getElementById('addName').value,
+                    email: document.getElementById('addEmail').value,
+                    department: document.getElementById('addDept').value,
+                    designation: document.getElementById('addDesignation').value,
+                    specialization: document.getElementById('addSpecialization').value,
+                    experience_years: document.getElementById('addExp').value,
+                    assigned_classes: document.getElementById('addClasses').value,
+                    assigned_semesters: document.getElementById('addSemesters').value,
+                    assigned_subjects: document.getElementById('addSubjects').value
+                };
+
+                fetch('/api/admin/faculty', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(facultyData)
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            showSuccessModal('Success', 'Faculty added successfully');
+                            loadFacultyData();
+                            closeModal(form.closest('.modal'));
+                        } else {
+                            showErrorModal('Error', data.error || 'Failed to add faculty');
+                        }
+                    })
+                    .catch(err => showErrorModal('Error', 'Failed to add faculty'));
+            };
+        }
+    }, 100);
 }
 
-function editFaculty(facultyId) {
-    showModal('Edit Faculty', `Edit form for faculty ${facultyId} with current information pre-loaded.`, 'info');
+function editFaculty(id) {
+    fetch(`/api/admin/faculty/${id}`)
+        .then(res => res.json())
+        .then(faculty => {
+            const formHtml = `
+                <form id="editFacultyForm" class="edit-form">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="editName" value="${faculty.full_name}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="editEmail" value="${faculty.email}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Department</label>
+                        <select id="editDept" required>
+                             <option value="Computer Science" ${faculty.department === 'Computer Science' ? 'selected' : ''}>Computer Science</option>
+                             <option value="Electronics" ${faculty.department === 'Electronics' ? 'selected' : ''}>Electronics</option>
+                             <option value="Mechanical" ${faculty.department === 'Mechanical' ? 'selected' : ''}>Mechanical</option>
+                             <option value="Civil" ${faculty.department === 'Civil' ? 'selected' : ''}>Civil</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Designation</label>
+                        <input type="text" id="editDesignation" value="${faculty.designation}" required>
+                    </div>
+                     <div class="form-group">
+                        <label>Specialization</label>
+                        <input type="text" id="editSpecialization" value="${faculty.specialization}">
+                    </div>
+                    <div class="form-group">
+                        <label>Experience (Years)</label>
+                        <input type="number" id="editExp" value="${faculty.experience_years}">
+                    </div>
+                    <div class="form-group">
+                        <label>Assigned Classes/Divisions</label>
+                        <input type="text" id="editClasses" value="${faculty.assigned_classes || ''}" placeholder="e.g. CSE-A, ECE-B">
+                    </div>
+                    <div class="form-group">
+                        <label>Assigned Semesters</label>
+                        <input type="text" id="editSemesters" value="${faculty.assigned_semesters || ''}" placeholder="e.g. 1st, 3rd">
+                    </div>
+                    <div class="form-group">
+                        <label>Assigned Subjects</label>
+                        <input type="text" id="editSubjects" value="${faculty.assigned_subjects || ''}" placeholder="e.g. Data Structures">
+                    </div>
+                    <div class="modal-actions" style="margin-top: 20px; display: flex; justify-content: space-between;">
+                        <button type="submit" class="save-btn" style="background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Save Changes</button>
+                        <button type="button" onclick="deleteFaculty(${id})" class="delete-btn" style="background: #f44336; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Delete Faculty</button>
+                    </div>
+                </form>
+            `;
+
+            showModal('Edit Faculty', formHtml, 'info');
+
+            // Allow time for modal to render before attaching listener
+            setTimeout(() => {
+                const form = document.getElementById('editFacultyForm');
+                if (form) {
+                    form.onsubmit = (e) => {
+                        e.preventDefault();
+                        const updatedData = {
+                            full_name: document.getElementById('editName').value,
+                            email: document.getElementById('editEmail').value,
+                            department: document.getElementById('editDept').value,
+                            designation: document.getElementById('editDesignation').value,
+                            specialization: document.getElementById('editSpecialization').value,
+                            experience_years: document.getElementById('editExp').value,
+                            assigned_classes: document.getElementById('editClasses').value,
+                            assigned_semesters: document.getElementById('editSemesters').value,
+                            assigned_subjects: document.getElementById('editSubjects').value
+                        };
+
+                        fetch(`/api/admin/faculty/${id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(updatedData)
+                        })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    showSuccessModal('Success', 'Faculty details updated');
+                                    loadFacultyData(); // Refresh list
+                                    // Close modal by finding the closest modal parent of the form
+                                    closeModal(form.closest('.modal'));
+                                } else {
+                                    showErrorModal('Error', data.error || 'Update failed');
+                                }
+                            })
+                            .catch(err => showErrorModal('Error', 'Failed to update faculty'));
+                    };
+                }
+            }, 100);
+        })
+        .catch(err => showErrorModal('Error', 'Failed to load faculty details'));
 }
 
-function viewFacultyDetails(facultyId) {
-    showModal('Faculty Details', `Comprehensive view of faculty ${facultyId} including teaching assignments and performance.`, 'info');
+function viewFacultyDetails(id) {
+    fetch(`/api/admin/faculty/${id}`)
+        .then(res => res.json())
+        .then(faculty => {
+            const detailsHtml = `
+                <div class="faculty-details">
+                    <div class="detail-row" style="margin-bottom: 10px;">
+                        <strong>ID:</strong> ${faculty.faculty_id}
+                    </div>
+                    <div class="detail-row" style="margin-bottom: 10px;">
+                        <strong>Name:</strong> ${faculty.full_name}
+                    </div>
+                    <div class="detail-row" style="margin-bottom: 10px;">
+                        <strong>Email:</strong> ${faculty.email}
+                    </div>
+                    <div class="detail-row" style="margin-bottom: 10px;">
+                        <strong>Department:</strong> ${faculty.department}
+                    </div>
+                    <div class="detail-row" style="margin-bottom: 10px;">
+                        <strong>Designation:</strong> ${faculty.designation}
+                    </div>
+                    <div class="detail-row" style="margin-bottom: 10px;">
+                        <strong>Specialization:</strong> ${faculty.specialization}
+                    </div>
+                    <div class="detail-row" style="margin-bottom: 10px;">
+                        <strong>Experience:</strong> ${faculty.experience_years} years
+                    </div>
+                    <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
+                    <div class="detail-row" style="margin-bottom: 10px;">
+                        <strong>Classes/Divisions:</strong> ${faculty.assigned_classes || 'N/A'}
+                    </div>
+                    <div class="detail-row" style="margin-bottom: 10px;">
+                        <strong>Semesters:</strong> ${faculty.assigned_semesters || 'N/A'}
+                    </div>
+                    <div class="detail-row" style="margin-bottom: 10px;">
+                        <strong>Subjects:</strong> ${faculty.assigned_subjects || 'N/A'}
+                    </div>
+                </div>
+            `;
+            showModal('Faculty Details', detailsHtml, 'info');
+        })
+        .catch(err => showErrorModal('Error', 'Failed to load faculty details'));
+}
+
+function deleteFaculty(id) {
+    // Determine the modal to close (the edit modal)
+    const editModal = document.querySelector('.modal[style*="block"]'); // rudimentary check
+
+    showConfirmModal('Delete Faculty', 'Are you sure you want to delete this faculty member? This cannot be undone.', () => {
+        fetch(`/api/admin/faculty/${id}`, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccessModal('Deleted', 'Faculty member deleted successfully');
+                    loadFacultyData();
+                    if (editModal) closeModal(editModal);
+                } else {
+                    showErrorModal('Error', data.error || 'Delete failed');
+                }
+            })
+            .catch(err => showErrorModal('Error', 'Failed to delete faculty'));
+    });
 }
 
 function addCourse() {
@@ -668,7 +943,7 @@ function deleteAssignment(index) {
     showConfirmModal(
         'Delete Assignment',
         `Are you sure you want to delete assignment ${index}?`,
-        function() {
+        function () {
             showSuccessModal('Assignment Deleted', `Assignment ${index} has been successfully removed.`);
         }
     );
@@ -691,23 +966,23 @@ function deleteNotice(noticeId) {
     showConfirmModal(
         'Delete Notice',
         'Are you sure you want to delete this notice? This will also remove all related notifications.',
-        function() {
+        function () {
             fetch(`/api/notices/delete/${noticeId}`, {
                 method: 'DELETE'
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showSuccessModal('Notice Deleted', 'Notice has been successfully deleted.');
-                    loadPublishedNotices();
-                } else {
-                    showErrorModal('Error', 'Failed to delete notice.');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showErrorModal('Error', 'An error occurred while deleting the notice.');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showSuccessModal('Notice Deleted', 'Notice has been successfully deleted.');
+                        loadPublishedNotices();
+                    } else {
+                        showErrorModal('Error', 'Failed to delete notice.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showErrorModal('Error', 'An error occurred while deleting the notice.');
+                });
         }
     );
 }
@@ -722,7 +997,7 @@ function editFeeStructure(index) {
 
 function generateReport(reportType) {
     showModal('Generating Report', `${reportType} report is being generated. You will be notified when it's ready for download.`, 'success');
-    
+
     // Simulate report generation
     setTimeout(() => {
         showSuccessModal('Report Ready', `${reportType} report has been generated successfully and is ready for download.`);
@@ -742,7 +1017,7 @@ function toggleMobileMenu() {
 }
 
 // Add mobile menu button for responsive design
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     if (window.innerWidth <= 768) {
         const header = document.querySelector('.header-left');
         const menuBtn = document.createElement('button');
