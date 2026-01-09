@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
     <div class="dashboard-container">
         <!-- Sidebar -->
@@ -21,26 +23,26 @@
             </div>
             <ul class="sidebar-menu">
                 <li><a href="#dashboard" class="menu-item active" onclick="showSection('dashboard')">
-                    <i class="fas fa-tachometer-alt"></i> Dashboard
-                </a></li>
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a></li>
                 <li><a href="#classes" class="menu-item" onclick="showSection('classes')">
-                    <i class="fas fa-chalkboard"></i> My Classes
-                </a></li>
+                        <i class="fas fa-chalkboard"></i> My Classes
+                    </a></li>
                 <li><a href="#attendance" class="menu-item" onclick="showSection('attendance')">
-                    <i class="fas fa-calendar-check"></i> Mark Attendance
-                </a></li>
+                        <i class="fas fa-calendar-check"></i> Mark Attendance
+                    </a></li>
                 <li><a href="#materials" class="menu-item" onclick="showSection('materials')">
-                    <i class="fas fa-upload"></i> Upload Materials
-                </a></li>
+                        <i class="fas fa-upload"></i> Upload Materials
+                    </a></li>
                 <li><a href="#marks" class="menu-item" onclick="showSection('marks')">
-                    <i class="fas fa-edit"></i> Manage Marks
-                </a></li>
+                        <i class="fas fa-edit"></i> Manage Marks
+                    </a></li>
                 <li><a href="#mentorship" class="menu-item" onclick="showSection('mentorship')">
-                    <i class="fas fa-users"></i> Mentorship
-                </a></li>
+                        <i class="fas fa-users"></i> Mentorship
+                    </a></li>
                 <li><a href="#schedule" class="menu-item" onclick="showSection('schedule')">
-                    <i class="fas fa-clock"></i> Today's Schedule
-                </a></li>
+                        <i class="fas fa-clock"></i> Today's Schedule
+                    </a></li>
             </ul>
             <div class="sidebar-footer">
                 <button onclick="logout()" class="logout-btn">
@@ -103,7 +105,7 @@
                             <p class="card-status">This Semester</p>
                         </div>
                     </div>
-                    
+
                     <div class="card">
                         <div class="card-icon students-icon">
                             <i class="fas fa-users"></i>
@@ -114,7 +116,7 @@
                             <p class="card-status">Across All Classes</p>
                         </div>
                     </div>
-                    
+
                     <div class="card">
                         <div class="card-icon mentees-icon">
                             <i class="fas fa-user-friends"></i>
@@ -157,7 +159,7 @@
                         <i class="fas fa-plus"></i> Add Class
                     </button>
                 </div>
-                
+
                 <div class="classes-grid">
                     <div class="class-card">
                         <h4>Data Structures</h4>
@@ -169,7 +171,7 @@
                             <button onclick="viewStudents('DS001')">View Students</button>
                         </div>
                     </div>
-                    
+
                     <div class="class-card">
                         <h4>Algorithms</h4>
                         <p><strong>Course:</strong> CSE 3rd Year</p>
@@ -180,7 +182,7 @@
                             <button onclick="viewStudents('ALG001')">View Students</button>
                         </div>
                     </div>
-                    
+
                     <div class="class-card">
                         <h4>Database Systems</h4>
                         <p><strong>Course:</strong> CSE 4th Year</p>
@@ -205,7 +207,7 @@
                         <option value="DB001">Database Systems - CSE 4th Year</option>
                     </select>
                 </div>
-                
+
                 <div class="attendance-form" id="attendanceForm" style="display: none;">
                     <div class="form-header">
                         <h3 id="selectedClass">Data Structures - CSE 3rd Year</h3>
@@ -213,7 +215,7 @@
                             <span id="currentDate"></span> | <span id="currentTime"></span>
                         </div>
                     </div>
-                    
+
                     <div class="student-list">
                         <div class="list-header">
                             <span>Roll No.</span>
@@ -224,7 +226,7 @@
                             <!-- Students will be loaded dynamically -->
                         </div>
                     </div>
-                    
+
                     <div class="form-actions">
                         <button onclick="submitAttendance()" class="submit-btn">Submit Attendance</button>
                         <button onclick="cancelAttendance()" class="cancel-btn">Cancel</button>
@@ -237,14 +239,14 @@
                 <div class="section-header">
                     <h2>Upload Study Materials</h2>
                 </div>
-                
+
                 <div class="upload-form">
                     <form id="materialUploadForm">
                         <div class="form-group">
                             <label for="materialTitle">Title:</label>
                             <input type="text" id="materialTitle" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="materialSubject">Subject:</label>
                             <select id="materialSubject" required>
@@ -254,7 +256,7 @@
                                 <option value="DB">Database Systems</option>
                             </select>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="materialSemester">Semester:</label>
                             <select id="materialSemester" required>
@@ -264,23 +266,23 @@
                                 <option value="5">5th Semester</option>
                             </select>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="materialDescription">Description:</label>
                             <textarea id="materialDescription" rows="3"></textarea>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="materialFile">File:</label>
                             <input type="file" id="materialFile" accept=".pdf,.doc,.docx,.ppt,.pptx" required>
                         </div>
-                        
+
                         <button type="submit" class="upload-btn">
                             <i class="fas fa-upload"></i> Upload Material
                         </button>
                     </form>
                 </div>
-                
+
                 <div class="uploaded-materials">
                     <h3>Recently Uploaded Materials</h3>
                     <div class="materials-list">
@@ -310,14 +312,14 @@
                         <option value="DB001">Database Systems - CSE 4th Year</option>
                     </select>
                 </div>
-                
+
                 <div class="marks-management">
                     <div class="exam-type-selector">
                         <button class="exam-type-btn active" onclick="selectExamType('internal')">Internal Exam</button>
                         <button class="exam-type-btn" onclick="selectExamType('assignment')">Assignment</button>
                         <button class="exam-type-btn" onclick="selectExamType('external')">External Exam</button>
                     </div>
-                    
+
                     <div class="marks-table-container">
                         <table class="marks-table">
                             <thead>
@@ -335,7 +337,7 @@
                             </tbody>
                         </table>
                     </div>
-                    
+
                     <div class="marks-actions">
                         <button onclick="saveMarks()" class="save-marks-btn">Save All Marks</button>
                         <button onclick="exportMarks()" class="export-btn">Export to Excel</button>
@@ -348,7 +350,7 @@
                 <div class="section-header">
                     <h2>Mentorship</h2>
                 </div>
-                
+
                 <div class="mentorship-overview">
                     <div class="mentees-stats">
                         <div class="stat-card">
@@ -365,7 +367,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="mentees-list">
                     <h3>My Mentees</h3>
                     <div class="mentee-cards">
@@ -376,11 +378,17 @@
                                 <p>CGPA: 8.5 | Attendance: 85%</p>
                             </div>
                             <div class="mentee-status good">Good</div>
-                            <button onclick="chatWithMentee('2023001')" class="chat-btn">
-                                <i class="fas fa-comment"></i> Chat
-                            </button>
+                            <div class="mentee-actions">
+                                <button onclick="chatWithMentee('2023001')" class="chat-btn">
+                                    <i class="fas fa-comment"></i> Chat
+                                </button>
+                                <button onclick="openResetPasswordModal('1', 'John Doe')" class="reset-pwd-btn"
+                                    style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; margin-left: 5px; cursor: pointer;">
+                                    <i class="fas fa-key"></i> Reset Pwd
+                                </button>
+                            </div>
                         </div>
-                        
+
                         <div class="mentee-card">
                             <div class="mentee-info">
                                 <h4>Jane Smith</h4>
@@ -388,13 +396,36 @@
                                 <p>CGPA: 6.8 | Attendance: 68%</p>
                             </div>
                             <div class="mentee-status warning">Needs Attention</div>
-                            <button onclick="chatWithMentee('2023002')" class="chat-btn">
-                                <i class="fas fa-comment"></i> Chat
-                            </button>
+                            <div class="mentee-actions">
+                                <button onclick="chatWithMentee('2023002')" class="chat-btn">
+                                    <i class="fas fa-comment"></i> Chat
+                                </button>
+                                <button onclick="openResetPasswordModal('2', 'Jane Smith')" class="reset-pwd-btn"
+                                    style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; margin-left: 5px; cursor: pointer;">
+                                    <i class="fas fa-key"></i> Reset Pwd
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
+
+            <!-- Reset Password Modal -->
+            <div id="resetPasswordModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeResetPasswordModal()">&times;</span>
+                    <h3>Reset Student Password</h3>
+                    <p>Reset password for: <strong id="resetStudentName">Student Name</strong></p>
+                    <form id="resetPasswordForm" onsubmit="event.preventDefault(); submitStudentPasswordReset();">
+                        <input type="hidden" id="resetStudentId">
+                        <div class="form-group">
+                            <label for="newStudentPassword">New Password:</label>
+                            <input type="text" id="newStudentPassword" required placeholder="Enter new password">
+                        </div>
+                        <button type="submit" class="submit-btn" style="width: 100%;">Reset Password</button>
+                    </form>
+                </div>
+            </div>
 
             <!-- Schedule Section -->
             <section id="schedule" class="content-section">
@@ -402,7 +433,7 @@
                     <h2>Today's Schedule</h2>
                     <div class="date-display" id="todayDate"></div>
                 </div>
-                
+
                 <div class="schedule-timeline">
                     <div class="timeline-item">
                         <div class="time-slot">9:00 - 10:00 AM</div>
@@ -415,7 +446,7 @@
                             <button onclick="markAttendance('DS001')">Mark Attendance</button>
                         </div>
                     </div>
-                    
+
                     <div class="timeline-item">
                         <div class="time-slot">11:00 - 12:00 PM</div>
                         <div class="class-info">
@@ -427,7 +458,7 @@
                             <button onclick="markAttendance('ALG001')">Mark Attendance</button>
                         </div>
                     </div>
-                    
+
                     <div class="timeline-item">
                         <div class="time-slot">2:00 - 3:00 PM</div>
                         <div class="class-info">
@@ -446,4 +477,5 @@
 
     <script src="{{ url_for('static', filename='js/faculty-dashboard.js') }}"></script>
 </body>
+
 </html>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
     <div class="dashboard-container">
         <!-- Sidebar -->
@@ -21,44 +23,47 @@
             </div>
             <ul class="sidebar-menu">
                 <li><a href="#dashboard" class="menu-item active" onclick="showSection('dashboard')">
-                    <i class="fas fa-tachometer-alt"></i> Dashboard
-                </a></li>
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a></li>
                 <li><a href="#attendance" class="menu-item" onclick="showSection('attendance')">
-                    <i class="fas fa-calendar-check"></i> Attendance
-                </a></li>
+                        <i class="fas fa-calendar-check"></i> Attendance
+                    </a></li>
                 <li><a href="#marks" class="menu-item" onclick="showSection('marks')">
-                    <i class="fas fa-chart-line"></i> Marks
-                </a></li>
+                        <i class="fas fa-chart-line"></i> Marks
+                    </a></li>
                 <li><a href="#notes" class="menu-item" onclick="showSection('notes')">
-                    <i class="fas fa-book"></i> Notes
-                </a></li>
+                        <i class="fas fa-book"></i> Notes
+                    </a></li>
                 <li><a href="#events" class="menu-item" onclick="showSection('events')">
-                    <i class="fas fa-calendar-alt"></i> Events
-                </a></li>
+                        <i class="fas fa-calendar-alt"></i> Events
+                    </a></li>
                 <li><a href="#notices" class="menu-item" onclick="showSection('notices')">
-                    <i class="fas fa-bullhorn"></i> Notices
-                </a></li>
+                        <i class="fas fa-bullhorn"></i> Notices
+                    </a></li>
                 <li><a href="#fees" class="menu-item" onclick="showSection('fees')">
-                    <i class="fas fa-money-bill"></i> Fee Status
-                </a></li>
+                        <i class="fas fa-money-bill"></i> Fee Status
+                    </a></li>
                 <li><a href="#queries" class="menu-item" onclick="showSection('queries')">
-                    <i class="fas fa-question-circle"></i> Queries
-                </a></li>
+                        <i class="fas fa-question-circle"></i> Queries
+                    </a></li>
                 <li><a href="#examination" class="menu-item" onclick="showSection('examination')">
-                    <i class="fas fa-clipboard-list"></i> Examination
-                </a></li>
+                        <i class="fas fa-clipboard-list"></i> Examination
+                    </a></li>
                 <li><a href="#clubs" class="menu-item" onclick="showSection('clubs')">
-                    <i class="fas fa-users"></i> Clubs
-                </a></li>
+                        <i class="fas fa-users"></i> Clubs
+                    </a></li>
                 <li><a href="#idcard" class="menu-item" onclick="showSection('idcard')">
-                    <i class="fas fa-id-card"></i> ID Card
-                </a></li>
+                        <i class="fas fa-id-card"></i> ID Card
+                    </a></li>
                 <li><a href="#timetable" class="menu-item" onclick="showSection('timetable')">
-                    <i class="fas fa-clock"></i> Timetable
-                </a></li>
+                        <i class="fas fa-clock"></i> Timetable
+                    </a></li>
                 <li><a href="#scholarship" class="menu-item" onclick="showSection('scholarship')">
-                    <i class="fas fa-award"></i> Scholarships
-                </a></li>
+                        <i class="fas fa-award"></i> Scholarships
+                    </a></li>
+                <li><a href="#settings" class="menu-item" onclick="showSection('settings')">
+                        <i class="fas fa-cog"></i> Settings
+                    </a></li>
             </ul>
             <div class="sidebar-footer">
                 <button onclick="logout()" class="logout-btn">
@@ -121,7 +126,7 @@
                             <p class="card-status good">Good Standing</p>
                         </div>
                     </div>
-                    
+
                     <div class="card">
                         <div class="card-icon marks-icon">
                             <i class="fas fa-chart-line"></i>
@@ -132,7 +137,7 @@
                             <p class="card-status excellent">Excellent</p>
                         </div>
                     </div>
-                    
+
                     <div class="card">
                         <div class="card-icon fee-icon">
                             <i class="fas fa-money-bill"></i>
@@ -173,7 +178,7 @@
                         <span class="min-requirement">Minimum Required: 75%</span>
                     </div>
                 </div>
-                
+
                 <div class="attendance-cards">
                     <div class="subject-attendance">
                         <h3>Mathematics</h3>
@@ -183,7 +188,7 @@
                         <span class="attendance-percent">90%</span>
                         <p class="attendance-status good">Excellent</p>
                     </div>
-                    
+
                     <div class="subject-attendance">
                         <h3>Physics</h3>
                         <div class="attendance-bar">
@@ -192,7 +197,7 @@
                         <span class="attendance-percent">72%</span>
                         <p class="attendance-status warning">Need 3 more classes</p>
                     </div>
-                    
+
                     <div class="subject-attendance">
                         <h3>Computer Science</h3>
                         <div class="attendance-bar">
@@ -216,12 +221,12 @@
                         <option value="1">1st Semester</option>
                     </select>
                 </div>
-                
+
                 <div class="marks-container">
                     <div class="marks-chart">
                         <canvas id="marksChart"></canvas>
                     </div>
-                    
+
                     <div class="marks-table">
                         <table>
                             <thead>
@@ -252,7 +257,7 @@
                         </table>
                     </div>
                 </div>
-                
+
                 <button class="download-btn" onclick="downloadMarksheet()">
                     <i class="fas fa-download"></i> Download Marksheet
                 </button>
@@ -276,7 +281,7 @@
                         </select>
                     </div>
                 </div>
-                
+
                 <div class="notes-grid">
                     <div class="note-card">
                         <div class="note-icon">
@@ -289,7 +294,7 @@
                             <i class="fas fa-download"></i> Download
                         </button>
                     </div>
-                    
+
                     <div class="note-card">
                         <div class="note-icon">
                             <i class="fas fa-file-pdf"></i>
@@ -332,13 +337,13 @@
                         <button class="tab-btn" onclick="showFeeTab('history')">Payment History</button>
                     </div>
                 </div>
-                
+
                 <div id="currentFeeTab" class="fee-tab-content active">
                     <div class="fee-status-card">
                         <!-- Current fee details will be loaded here -->
                     </div>
                 </div>
-                
+
                 <div id="historyFeeTab" class="fee-tab-content">
                     <div class="fee-history-container">
                         <table class="fee-history-table">
@@ -412,18 +417,19 @@
                         <i class="fas fa-search"></i> Find My Clubs
                     </button>
                 </div>
-                
+
                 <div class="clubs-tabs">
                     <button class="tab-btn active" onclick="showClubTab('recommendations')">Recommendations</button>
                     <button class="tab-btn" onclick="showClubTab('all')">All Clubs</button>
                 </div>
-                
+
                 <div id="recommendationsTab" class="club-tab-content active">
                     <div class="club-recommendations" id="clubRecommendations">
-                        <p class="no-recommendations">Take the interest survey to get personalized club recommendations!</p>
+                        <p class="no-recommendations">Take the interest survey to get personalized club recommendations!
+                        </p>
                     </div>
                 </div>
-                
+
                 <div id="allClubsTab" class="club-tab-content">
                     <div class="clubs-grid" id="allClubsGrid">
                         <!-- All clubs will be loaded here -->
@@ -451,18 +457,172 @@
 
             <!-- Enhanced Scholarship Section -->
             <section id="scholarship" class="content-section">
-                <div class="section-header">
-                    <h2>Scholarship Opportunities</h2>
-                    <button onclick="openScholarshipEligibilityCheck()" class="add-btn">
-                        <i class="fas fa-calculator"></i> Check Eligibility
-                    </button>
-                </div>
-                <div class="scholarship-container">
-                    <div class="eligibility-status" id="eligibilityStatus" style="display: none;">
-                        <!-- Eligibility status will be shown here -->
+                <!-- Blue Search Header -->
+                <div class="scholarship-search-wrapper"
+                    style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 25px; border-radius: 12px; margin-bottom: 30px; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                    <div class="section-header"
+                        style="margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 10px;">
+                        <h2 style="color: white; font-size: 1.5rem;"><i class="fas fa-search"></i> Find Scholarships
+                            That Suit You</h2>
                     </div>
-                    <div class="scholarships-grid" id="eligibleScholarships">
-                        <!-- Eligible scholarships will be loaded here -->
+
+                    <div class="scholarship-filters"
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; align-items: end;">
+                        <div class="filter-group">
+                            <label for="searchIncome"
+                                style="display: block; margin-bottom: 8px; font-weight: 500;">Annual Family Income
+                                (₹)</label>
+                            <input type="number" id="searchIncome" placeholder="Enter annual income"
+                                style="width: 100%; padding: 10px; border-radius: 6px; border: none; font-size: 1rem;">
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="searchCategory"
+                                style="display: block; margin-bottom: 8px; font-weight: 500;">Category</label>
+                            <select id="searchCategory"
+                                style="width: 100%; padding: 10px; border-radius: 6px; border: none; font-size: 1rem; cursor: pointer;">
+                                <option value="">Select Category</option>
+                                <option value="general">General</option>
+                                <option value="obc">OBC</option>
+                                <option value="sc">SC</option>
+                                <option value="st">ST</option>
+                                <option value="ews">EWS</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="searchGender"
+                                style="display: block; margin-bottom: 8px; font-weight: 500;">Gender</label>
+                            <select id="searchGender"
+                                style="width: 100%; padding: 10px; border-radius: 6px; border: none; font-size: 1rem; cursor: pointer;">
+                                <option value="">Select Gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <button onclick="findScholarships()"
+                                style="width: 100%; padding: 10px; background: #0d47a1; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                                <i class="fas fa-search-plus"></i> Find Matching Scholarships
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <h3>All Available Scholarships</h3>
+                </div>
+
+                <div class="scholarships-grid" id="scholarshipCards">
+                    <!-- Cards will be loaded here -->
+                    <div style="grid-column: 1/-1; text-align: center; color: #666; padding: 40px;">
+                        <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 20px; color: #ddd;"></i>
+                        <p>Enter your details above to find matching scholarships.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings" class="content-section">
+                <div class="section-header">
+                    <h2>Settings</h2>
+                </div>
+
+                <div class="settings-container"
+                    style="max-width: 480px; margin: 0 auto; font-family: 'Poppins', sans-serif;">
+                    <div class="settings-card premium-ui"
+                        style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 20px;">
+                        <div class="card-header" style="margin-bottom: 25px;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; color: #333; margin: 0;">Change Password
+                            </h3>
+                        </div>
+
+                        <form id="changePasswordForm" onsubmit="event.preventDefault(); changePassword();">
+                            <div class="form-group" style="margin-bottom: 20px;">
+                                <input type="password" id="oldPassword" placeholder="Current Password" required
+                                    style="width: 100%; padding: 12px 15px; border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9f9; font-size: 0.95rem; transition: border-color 0.3s;">
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 10px;">
+                                <input type="password" id="newPassword" placeholder="New Password"
+                                    oninput="checkPasswordStrength()" required
+                                    style="width: 100%; padding: 12px 15px; border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9f9; font-size: 0.95rem; transition: border-color 0.3s;">
+                            </div>
+
+                            <!-- Password Strength -->
+                            <div class="password-strength-meter" style="margin-bottom: 20px;">
+                                <div class="strength-text"
+                                    style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px; color: #666;">
+                                    <span>Password Strength</span>
+                                    <span id="strengthLabel" style="font-weight: 600;">Weak</span>
+                                </div>
+                                <div class="strength-bar-bg"
+                                    style="height: 6px; background: #eee; border-radius: 3px; overflow: hidden;">
+                                    <div id="strengthBar"
+                                        style="width: 0%; height: 100%; background: #dc3545; transition: width 0.3s, background-color 0.3s;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Requirements List -->
+                            <div class="password-requirements" style="margin-bottom: 25px;">
+                                <p style="font-size: 0.9rem; font-weight: 600; color: #333; margin-bottom: 10px;">Must
+                                    Have</p>
+                                <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem; color: #666;">
+                                    <li id="req-length"
+                                        style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px;"><i
+                                            class="far fa-circle" style="color: #ccc;"></i> 8+ Characters</li>
+                                    <li id="req-special"
+                                        style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px;"><i
+                                            class="far fa-circle" style="color: #ccc;"></i> Special Character (!@#$)
+                                    </li>
+                                    <li id="req-number"
+                                        style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px;"><i
+                                            class="far fa-circle" style="color: #ccc;"></i> Number (0-9)</li>
+                                    <li id="req-upper"
+                                        style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px;"><i
+                                            class="far fa-circle" style="color: #ccc;"></i> Uppercase Letter</li>
+                                </ul>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 30px;">
+                                <input type="password" id="confirmPassword" placeholder="Confirm New Password" required
+                                    style="width: 100%; padding: 12px 15px; border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9f9; font-size: 0.95rem; transition: border-color 0.3s;">
+                            </div>
+
+                            <button type="submit" class="update-btn"
+                                style="width: 100%; padding: 12px; background: linear-gradient(135deg, #1e88e5, #1565c0); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 10px rgba(21, 101, 192, 0.2);">Update
+                                Password</button>
+                        </form>
+                    </div>
+
+                    <!-- Appearance Card (Small) -->
+                    <div class="settings-card appearance-card"
+                        style="background: white; border-radius: 12px; padding: 15px 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between;">
+                        <div class="appearance-label" style="display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-palette" style="color: #555;"></i>
+                            <span style="font-weight: 600; color: #333;">Appearance</span>
+                        </div>
+
+                        <div class="theme-toggle-group"
+                            style="display: flex; gap: 5px; background: #e9ecef; padding: 4px; border-radius: 20px;">
+                            <label class="theme-btn-radio" style="margin: 0;">
+                                <input type="radio" name="theme" value="light" onclick="setTheme('light')" checked
+                                    style="display: none;">
+                                <span class="btn-content active" id="theme-light-btn"
+                                    style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 16px; font-size: 0.85rem; cursor: pointer; background: white; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.2s;"><i
+                                        class="fas fa-sun"></i> Light</span>
+                            </label>
+                            <label class="theme-btn-radio" style="margin: 0;">
+                                <input type="radio" name="theme" value="dark" onclick="setTheme('dark')"
+                                    style="display: none;">
+                                <span class="btn-content" id="theme-dark-btn"
+                                    style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 16px; font-size: 0.85rem; cursor: pointer; color: #666; transition: all 0.2s;"><i
+                                        class="fas fa-moon"></i> Dark</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -621,4 +781,5 @@
 
     <script src="{{ url_for('static', filename='js/student-dashboard.js') }}"></script>
 </body>
+
 </html>

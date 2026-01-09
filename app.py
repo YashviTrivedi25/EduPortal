@@ -28,8 +28,12 @@ class Student(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     roll_number = db.Column(db.String(20), unique=True, nullable=False)
     enrollment_number = db.Column(db.String(20), unique=True, nullable=False)
-    current_semester = db.Column(db.Integer, nullable=False)
+    current_semester = db.Column(db.Integer, nullable=False, default=2)
     branch = db.Column(db.String(50), nullable=False)
+    division = db.Column(db.String(5))
+    batch = db.Column(db.String(10))
+    mentor = db.Column(db.String(100))
+    function = db.Column(db.Integer, default=1)  # 1=Active, 0=Inactive
     admission_year = db.Column(db.Integer, nullable=False)
     cgpa = db.Column(db.Float, default=0.0)
     photo_url = db.Column(db.String(500))
@@ -561,11 +565,14 @@ def get_student_timetable(student_id):
 def get_eligible_scholarships():
     data = request.get_json()
     student_cgpa = data.get('cgpa', 0.0)
-    family_income = data.get('family_income', 0.0)
-    category = data.get('category', 'general')
-    gender = data.get('gender', 'male')
     
-    # Filter scholarships based on eligibility
+    # Get inputs with fallback
+    # The frontend sends these if the user fills them.
+    family_income = data.get('family_income')
+    category = data.get('category')
+    gender = data.get('gender')
+    
+    # Filter scholarships based on strict eligibility
     scholarships = Scholarship.query.filter(Scholarship.is_active == True).all()
     eligible_scholarships = []
     
@@ -573,37 +580,53 @@ def get_eligible_scholarships():
         eligible = True
         reasons = []
         
-        # Check CGPA requirement
-        if scholarship.min_cgpa > 0 and student_cgpa < scholarship.min_cgpa:
+        # 1. Check CGPA requirement (if student has one)
+        if scholarship.min_cgpa > 0 and student_cgpa > 0 and student_cgpa < scholarship.min_cgpa:
             eligible = False
             reasons.append(f"Minimum CGPA required: {scholarship.min_cgpa}")
         
-        # Check income requirement
-        if scholarship.max_family_income > 0 and family_income > scholarship.max_family_income:
-            eligible = False
-            reasons.append(f"Maximum family income: ₹{scholarship.max_family_income:,.0f}")
+        # 2. Check income requirement (Strict)
+        # If user provided income, check against max limit.
+        if family_income is not None:
+            try:
+                income_val = float(family_income)
+                if scholarship.max_family_income > 0 and income_val > scholarship.max_family_income:
+                    eligible = False
+                    reasons.append(f"Income exceeds limit of ₹{scholarship.max_family_income:,.0f}")
+            except ValueError:
+                pass # Invalid income input, ignore or handle? For now ignore.
+
+        # 3. Check category eligibility (Strict)
+        # If user provided category, it MUST be in the eligible list.
+        if category:
+            eligible_cats = [c.strip().lower() for c in scholarship.eligible_categories.split(',')]
+            if 'all' not in eligible_cats and category.lower() not in eligible_cats:
+                eligible = False
+                reasons.append(f"Only for categories: {scholarship.eligible_categories}")
         
-        # Check category eligibility
-        if scholarship.eligible_categories and category not in scholarship.eligible_categories.split(','):
-            eligible = False
-            reasons.append(f"Category requirement: {scholarship.eligible_categories}")
+        # 4. Check gender eligibility (Strict)
+        # If user provided gender, it MUST match.
+        if gender:
+            eligible_gens = [g.strip().lower() for g in scholarship.eligible_genders.split(',')]
+            # 'all' means any gender is fine.
+            if 'all' not in eligible_gens and gender.lower() not in eligible_gens:
+                eligible = False
+                reasons.append(f"Only for gender: {scholarship.eligible_genders}")
         
-        # Check gender eligibility
-        if scholarship.eligible_genders and scholarship.eligible_genders != 'all' and gender not in scholarship.eligible_genders.split(','):
-            eligible = False
-            reasons.append(f"Gender requirement: {scholarship.eligible_genders}")
-        
-        eligible_scholarships.append({
-            'id': scholarship.id,
-            'name': scholarship.name,
-            'description': scholarship.description,
-            'category': scholarship.category,
-            'amount': scholarship.amount,
-            'deadline': scholarship.deadline.isoformat(),
-            'official_website': scholarship.official_website,
-            'eligible': eligible,
-            'ineligibility_reasons': reasons if not eligible else []
-        })
+        # Only add if eligible (User asked to "match the details... and then show them the scholarship")
+        # So we primarily want to show ELIGIBLE ones.
+        if eligible:
+            eligible_scholarships.append({
+                'id': scholarship.id,
+                'name': scholarship.name,
+                'description': scholarship.description,
+                'category': scholarship.category,
+                'amount': scholarship.amount,
+                'deadline': scholarship.deadline.isoformat(),
+                'official_website': scholarship.official_website,
+                'eligible': True,
+                'eligibility_criteria': scholarship.eligibility_criteria
+            })
     
     return jsonify(eligible_scholarships)
 
@@ -731,6 +754,78 @@ def get_admin_stats():
         'total_courses': total_courses,
         'total_fee_collection': total_fee_collection
     })
+
+@app.route('/api/change-password', methods=['POST'])
+def change_password():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    old_password = data.get('old_password')
+    new_password = data.get('new_password')
+    
+    user = User.query.get(session['user_id'])
+    
+    if not user or not check_password_hash(user.password_hash, old_password):
+        return jsonify({'success': False, 'message': 'Incorrect old password'})
+    
+    user.password_hash = generate_password_hash(new_password)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': 'Password changed successfully'})
+
+@app.route('/api/faculty/reset-student-password', methods=['POST'])
+def reset_student_password():
+    if 'user_id' not in session or session.get('role') != 'faculty':
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    student_id = data.get('student_id')
+    new_password = data.get('new_password')
+    
+    faculty_user = User.query.get(session['user_id'])
+    faculty = Faculty.query.filter_by(user_id=faculty_user.id).first()
+    
+    student = Student.query.get(student_id)
+    if not student:
+        return jsonify({'success': False, 'message': 'Student not found'})
+        
+    # Verify mentorship
+    if student.mentor != faculty.faculty_id:
+        return jsonify({'success': False, 'message': 'You are not authorized to reset this student password'})
+        
+    student.user.password_hash = generate_password_hash(new_password)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': 'Student password reset successfully'})
+
+@app.route('/api/faculty/my-mentees')
+def get_my_mentees():
+    if 'user_id' not in session or session.get('role') != 'faculty':
+        return jsonify({'error': 'Unauthorized'}), 401
+        
+    faculty_user = User.query.get(session['user_id'])
+    faculty = Faculty.query.filter_by(user_id=faculty_user.id).first()
+    
+    if not faculty:
+         return jsonify({'error': 'Faculty profile not found'}), 404
+         
+    # Find students where mentor matches faculty_id
+    # Note: Student.mentor stores the code (e.g. "MGV"), Faculty.faculty_id stores the same code.
+    mentees = Student.query.filter_by(mentor=faculty.faculty_id).all()
+    
+    mentees_data = []
+    for student in mentees:
+        mentees_data.append({
+            'id': student.id,
+            'name': student.user.full_name,
+            'roll_number': student.roll_number,
+            'branch': student.branch,
+            'cgpa': student.cgpa,
+            'enrollment_number': student.enrollment_number # Useful if needed
+        })
+        
+    return jsonify(mentees_data)
 
 # Initialize database
 def init_db():
@@ -968,74 +1063,129 @@ def init_db():
                     db.session.add(timetable_entry)
             
             # Create enhanced scholarships
-            scholarships = [
+            real_scholarships = [
                 Scholarship(
-                    name='Merit Excellence Scholarship',
-                    description='Awarded to students with outstanding academic performance across all categories.',
+                    name='AICTE Pragati Scholarship for Girls',
+                    description='Empowering girl students in technical education. Aims to provide assistance for advancement of girls pursuing technical education.',
                     category='merit',
-                    eligibility_criteria='CGPA >= 8.5, No backlogs, Regular attendance >= 85%',
-                    min_cgpa=8.5,
-                    eligible_categories='general,obc,sc,st,ews',
-                    eligible_genders='all',
-                    amount=25000,
-                    deadline=datetime(2026, 3, 31).date(),
-                    official_website='https://scholarship.gov.in/merit-excellence'
-                ),
-                Scholarship(
-                    name='Need-Based Financial Aid',
-                    description='Financial assistance for economically disadvantaged students from all backgrounds.',
-                    category='need',
-                    eligibility_criteria='Family income < 2 LPA, CGPA >= 6.0, Financial need documentation required',
-                    min_cgpa=6.0,
-                    max_family_income=200000,
-                    eligible_categories='general,obc,sc,st,ews',
-                    eligible_genders='all',
-                    amount=40000,
-                    deadline=datetime(2026, 4, 15).date(),
-                    official_website='https://scholarship.gov.in/need-based'
-                ),
-                Scholarship(
-                    name='SC/ST Empowerment Scholarship',
-                    description='Special scholarship for SC/ST category students to promote higher education.',
-                    category='minority',
-                    eligibility_criteria='SC/ST category certificate, CGPA >= 6.5, Family income < 5 LPA',
-                    min_cgpa=6.5,
-                    max_family_income=500000,
-                    eligible_categories='sc,st',
-                    eligible_genders='all',
-                    amount=50000,
-                    deadline=datetime(2026, 5, 30).date(),
-                    official_website='https://scholarship.gov.in/scst-empowerment'
-                ),
-                Scholarship(
-                    name='Women in STEM Scholarship',
-                    description='Encouraging women students to pursue careers in Science, Technology, Engineering, and Mathematics.',
-                    category='merit',
-                    eligibility_criteria='Female students in Engineering/Science, CGPA >= 7.5, Leadership activities',
-                    min_cgpa=7.5,
+                    eligibility_criteria='Female students, Family income <= 8 LPA, Admitted to 1st year of Degree/Diploma level course.',
+                    min_cgpa=0.0,
+                    max_family_income=800000,
                     eligible_categories='general,obc,sc,st,ews',
                     eligible_genders='female',
-                    amount=30000,
-                    deadline=datetime(2026, 6, 30).date(),
-                    official_website='https://scholarship.gov.in/women-stem'
+                    amount=50000,
+                    deadline=datetime(2026, 10, 31).date(),
+                    official_website='https://www.aicte-india.org/schemes/students-development-schemes/Pragati'
                 ),
                 Scholarship(
-                    name='OBC Welfare Scholarship',
-                    description='Supporting Other Backward Classes students in their educational journey.',
+                    name='AICTE Saksham Scholarship',
+                    description='Support for specially-abled children to pursue technical education. For students with disability of not less than 40%.',
                     category='minority',
-                    eligibility_criteria='OBC category certificate, CGPA >= 7.0, Family income < 3 LPA',
-                    min_cgpa=7.0,
+                    eligibility_criteria='Differently-abled students (>40%), Family income <= 8 LPA.',
+                    min_cgpa=0.0,
+                    max_family_income=800000,
+                    eligible_categories='general,obc,sc,st,ews',
+                    eligible_genders='all',
+                    amount=50000,
+                    deadline=datetime(2026, 10, 31).date(),
+                    official_website='https://www.aicte-india.org/schemes/students-development-schemes/Saksham'
+                ),
+                Scholarship(
+                    name='PM-USP Central Sector Scheme',
+                    description='Central Sector Scheme of Scholarship for College and University Students. For meritorious students from low-income families.',
+                    category='merit',
+                    eligibility_criteria='Top 20th percentile in Class 12, Family income < 4.5 LPA, Pursuing regular course.',
+                    min_cgpa=0.0,
+                    max_family_income=450000,
+                    eligible_categories='general,obc,sc,st,ews',
+                    eligible_genders='all',
+                    amount=20000,
+                    deadline=datetime(2026, 12, 31).date(),
+                    official_website='https://scholarships.gov.in/public/schemeGuidelines/CSSS_Guidelines.pdf'
+                ),
+                Scholarship(
+                    name='Bharti Airtel Scholarship',
+                    description='To support deserving students from diverse socio-economic backgrounds, with a focus on girl students, in becoming future technology leaders.',
+                    category='need',
+                    eligibility_criteria='Top 50 NIRF Engineering Institute, Family income <= 8 LPA.',
+                    min_cgpa=0.0,
+                    max_family_income=800000,
+                    eligible_categories='general,obc,sc,st,ews',
+                    eligible_genders='all',
+                    amount=100000,
+                    deadline=datetime(2026, 8, 31).date(),
+                    official_website='https://bhartifoundation.org/programs/higher-education/bharti-airtel-scholarship-program/'
+                ),
+                Scholarship(
+                    name='Reliance Foundation Scholarship',
+                    description='Identifying and nurturing India’s brightest students with leadership potential from all socio-economic backgrounds.',
+                    category='merit',
+                    eligibility_criteria='Passed 12th with >60%, Family income < 15 LPA, Enrolled in 1st year full-time degree.',
+                    min_cgpa=0.0,
+                    max_family_income=1500000,
+                    eligible_categories='general,obc,sc,st,ews',
+                    eligible_genders='all',
+                    amount=200000,
+                    deadline=datetime(2026, 10, 15).date(),
+                    official_website='https://scholarships.reliancefoundation.org/'
+                ),
+                Scholarship(
+                    name='SBI Asha Scholarship',
+                    description='Scholarship Program by SBI Foundation for meritorious students from low-income families.',
+                    category='need',
+                    eligibility_criteria='75% marks in previous academic year, Family income < 3 LPA.',
+                    min_cgpa=7.5,
                     max_family_income=300000,
+                    eligible_categories='general,obc,sc,st,ews',
+                    eligible_genders='all',
+                    amount=50000,
+                    deadline=datetime(2026, 11, 30).date(),
+                    official_website='https://www.sbifoundation.in/asha-scholarship'
+                ),
+                Scholarship(
+                    name='Post Matric Scholarship for SC',
+                    description='Financial assistance to SC students studying at post-matriculation or post-secondary stage.',
+                    category='minority',
+                    eligibility_criteria='SC Students, Family income <= 2.5 LPA.',
+                    min_cgpa=0.0,
+                    max_family_income=250000,
+                    eligible_categories='sc',
+                    eligible_genders='all',
+                    amount=15000,
+                    deadline=datetime(2026, 11, 30).date(),
+                    official_website='https://socialjustice.gov.in/schemes/post-matric-scholarship-for-sc-students'
+                ),
+                Scholarship(
+                    name='Post Matric Scholarship for OBC',
+                    description='Financial assistance to OBC students studying at post-matriculation or post-secondary stage.',
+                    category='minority',
+                    eligibility_criteria='OBC Students, Family income <= 2.5 LPA.',
+                    min_cgpa=0.0,
+                    max_family_income=250000,
                     eligible_categories='obc',
                     eligible_genders='all',
-                    amount=35000,
-                    deadline=datetime(2026, 7, 15).date(),
-                    official_website='https://scholarship.gov.in/obc-welfare'
+                    amount=10000,
+                    deadline=datetime(2026, 11, 30).date(),
+                    official_website='https://socialjustice.gov.in/schemes/post-matric-scholarship-for-obc-students'
                 )
             ]
             
-            for scholarship in scholarships:
-                db.session.add(scholarship)
+            for s in real_scholarships:
+                existing = Scholarship.query.filter_by(name=s.name).first()
+                if existing:
+                    # Update existing record
+                    existing.official_website = s.official_website
+                    existing.description = s.description
+                    existing.eligibility_criteria = s.eligibility_criteria
+                    existing.amount = s.amount
+                    existing.deadline = s.deadline
+                    existing.max_family_income = s.max_family_income
+                    existing.min_cgpa = s.min_cgpa
+                    existing.eligible_categories = s.eligible_categories
+                    existing.eligible_genders = s.eligible_genders
+                else:
+                    # Add new record
+                    db.session.add(s)
             
             # Create comprehensive fee structures
             fee_structures = [
@@ -1094,6 +1244,130 @@ def init_db():
             db.session.commit()
             
             print("Comprehensive sample data created successfully!")
+
+        # Ensure authentic scholarships exist (even if DB was already initialized)
+        if Scholarship.query.filter_by(name='AICTE Pragati Scholarship for Girls').count() == 0:
+            print("Adding authentic scholarships...")
+            # Optional: Clear old dummy scholarships if they exist and no applications linked
+            # try:
+            #     if ScholarshipApplication.query.count() == 0:
+            #         Scholarship.query.delete()
+            #         db.session.commit()
+            # except:
+            #     pass
+
+            real_scholarships = [
+                Scholarship(
+                    name='AICTE Pragati Scholarship for Girls',
+                    description='Empowering girl students in technical education. Aims to provide assistance for advancement of girls pursuing technical education.',
+                    category='merit',
+                    eligibility_criteria='Female students, Family income <= 8 LPA, Admitted to 1st year of Degree/Diploma level course.',
+                    min_cgpa=0.0,
+                    max_family_income=800000,
+                    eligible_categories='general,obc,sc,st,ews',
+                    eligible_genders='female',
+                    amount=50000,
+                    deadline=datetime(2026, 10, 31).date(),
+                    official_website='https://www.aicte-india.org/schemes/students-development-schemes/Pragati'
+                ),
+                Scholarship(
+                    name='AICTE Saksham Scholarship',
+                    description='Support for specially-abled children to pursue technical education. For students with disability of not less than 40%.',
+                    category='minority',
+                    eligibility_criteria='Differently-abled students (>40%), Family income <= 8 LPA.',
+                    min_cgpa=0.0,
+                    max_family_income=800000,
+                    eligible_categories='general,obc,sc,st,ews',
+                    eligible_genders='all',
+                    amount=50000,
+                    deadline=datetime(2026, 10, 31).date(),
+                    official_website='https://www.aicte-india.org/schemes/students-development-schemes/Saksham'
+                ),
+                Scholarship(
+                    name='PM-USP Central Sector Scheme',
+                    description='Central Sector Scheme of Scholarship for College and University Students. For meritorious students from low-income families.',
+                    category='merit',
+                    eligibility_criteria='Top 20th percentile in Class 12, Family income < 4.5 LPA, Pursuing regular course.',
+                    min_cgpa=0.0,
+                    max_family_income=450000,
+                    eligible_categories='general,obc,sc,st,ews',
+                    eligible_genders='all',
+                    amount=20000,
+                    deadline=datetime(2026, 12, 31).date(),
+                    official_website='https://scholarships.gov.in/public/schemeGuidelines/CSSS_Guidelines.pdf'
+                ),
+                Scholarship(
+                    name='Bharti Airtel Scholarship',
+                    description='To support deserving students from diverse socio-economic backgrounds, with a focus on girl students, in becoming future technology leaders.',
+                    category='need',
+                    eligibility_criteria='Top 50 NIRF Engineering Institute, Family income <= 8 LPA.',
+                    min_cgpa=0.0,
+                    max_family_income=800000,
+                    eligible_categories='general,obc,sc,st,ews',
+                    eligible_genders='all',
+                    amount=100000,
+                    deadline=datetime(2026, 8, 31).date(),
+                    official_website='https://bhartifoundation.org/programs/higher-education/bharti-airtel-scholarship-program/'
+                ),
+                Scholarship(
+                    name='Reliance Foundation Scholarship',
+                    description='Identifying and nurturing India’s brightest students with leadership potential from all socio-economic backgrounds.',
+                    category='merit',
+                    eligibility_criteria='Passed 12th with >60%, Family income < 15 LPA, Enrolled in 1st year full-time degree.',
+                    min_cgpa=0.0,
+                    max_family_income=1500000,
+                    eligible_categories='general,obc,sc,st,ews',
+                    eligible_genders='all',
+                    amount=200000,
+                    deadline=datetime(2026, 10, 15).date(),
+                    official_website='https://scholarships.reliancefoundation.org/Undergraduate_Scholarship.aspx'
+                ),
+                Scholarship(
+                    name='SBI Asha Scholarship',
+                    description='Scholarship Program by SBI Foundation for meritorious students from low-income families.',
+                    category='need',
+                    eligibility_criteria='75% marks in previous academic year, Family income < 3 LPA.',
+                    min_cgpa=7.5,
+                    max_family_income=300000,
+                    eligible_categories='general,obc,sc,st,ews',
+                    eligible_genders='all',
+                    amount=50000,
+                    deadline=datetime(2026, 11, 30).date(),
+                    official_website='https://www.sbifoundation.in/asha-scholarship'
+                ),
+                Scholarship(
+                    name='Post Matric Scholarship for SC',
+                    description='Financial assistance to SC students studying at post-matriculation or post-secondary stage.',
+                    category='minority',
+                    eligibility_criteria='SC Students, Family income <= 2.5 LPA.',
+                    min_cgpa=0.0,
+                    max_family_income=250000,
+                    eligible_categories='sc',
+                    eligible_genders='all',
+                    amount=15000,
+                    deadline=datetime(2026, 11, 30).date(),
+                    official_website='https://socialjustice.gov.in/schemes/post-matric-scholarship-for-sc-students'
+                ),
+
+                Scholarship(
+                    name='Post Matric Scholarship for OBC',
+                    description='Financial assistance to OBC students studying at post-matriculation or post-secondary stage.',
+                    category='minority',
+                    eligibility_criteria='OBC Students, Family income <= 2.5 LPA.',
+                    min_cgpa=0.0,
+                    max_family_income=250000,
+                    eligible_categories='obc',
+                    eligible_genders='all',
+                    amount=10000,
+                    deadline=datetime(2026, 11, 30).date(),
+                    official_website='https://socialjustice.gov.in/schemes/post-matric-scholarship-for-obc-students'
+                )
+            ]
+            
+            for s in real_scholarships:
+                db.session.add(s)
+            db.session.commit()
+            print("Authentic scholarships added.")
 
 if __name__ == '__main__':
     init_db()
