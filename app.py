@@ -17,8 +17,10 @@ from models import (
     User, Student, Faculty, Course, Subject, SubjectAssignment, Attendance,
     Marks, Notice, StudyMaterial, FeeStructure, FeePayment, Event, Club,
     Timetable, StudentQuery, QueryResponse, Scholarship, ScholarshipApplication,
+    Timetable, StudentQuery, QueryResponse, Scholarship, ScholarshipApplication,
     Notification, Mentorship
 )
+from timetable_model import ClassSchedule
 
 # Routes
 @app.route('/')
@@ -67,6 +69,7 @@ def login():
                     'enrollment_number': student.enrollment_number,
                     'current_semester': student.current_semester,
                     'branch': student.branch,
+                    'batch': student.batch,
                     'cgpa': student.cgpa
                 })
         elif user.role == 'faculty':
@@ -263,37 +266,50 @@ def get_club_recommendations():
     
     return jsonify(recommendations)
 
-@app.route('/api/student/timetable/<int:student_id>')
-def get_student_timetable(student_id):
-    student = Student.query.get(student_id)
-    if not student:
-        return jsonify({'error': 'Student not found'}), 404
+@app.route('/api/student/timetable/<int:user_id>')
+def get_student_timetable(user_id):
+    student = Student.query.filter_by(user_id=user_id).first()
+    if not student or not student.batch:
+        return jsonify([])
     
-    # Get timetable for student's course and semester
-    timetable_entries = Timetable.query.join(Course).filter(
-        Course.course_name == student.branch,
-        Timetable.semester == student.current_semester
-    ).all()
+    schedule = ClassSchedule.query.filter(ClassSchedule.batch.ilike(student.batch.strip())).order_by(ClassSchedule.day_order, ClassSchedule.id).all()
+    result = []
+    for entry in schedule:
+        result.append({
+            'day': entry.day_of_week,
+            'time': entry.time_slot,
+            'subject': entry.subject,
+            'faculty': entry.faculty,
+            'room': entry.room,
+            'type': entry.entry_type
+        })
+    return jsonify(result)
+
+@app.route('/api/faculty/timetable/<int:user_id>')
+def get_faculty_timetable(user_id):
+    faculty = Faculty.query.filter_by(user_id=user_id).first()
+    if not faculty:
+        return jsonify([])
     
-    # Organize by day and time
-    timetable = {}
-    days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+    # Extract initials from "Prof. XYZ" or just use full name if not found
+    name = faculty.user.full_name
+    initials = name.replace('Prof.', '').replace('Dr.', '').strip()
     
-    for day in days:
-        timetable[day] = {}
+    # Search for initials in the faculty column (case-insensitive)
+    schedule = ClassSchedule.query.filter(ClassSchedule.faculty.ilike(f"%{initials}%")).order_by(ClassSchedule.day_order, ClassSchedule.id).all()
     
-    for entry in timetable_entries:
-        day = entry.day_of_week.lower()
-        time_slot = entry.time_slot
-        
-        timetable[day][time_slot] = {
-            'subject_name': entry.subject.subject_name,
-            'subject_code': entry.subject.subject_code,
-            'faculty_name': entry.faculty.user.full_name,
-            'room_number': entry.room_number
-        }
-    
-    return jsonify(timetable)
+    result = []
+    for entry in schedule:
+        result.append({
+            'day': entry.day_of_week,
+            'time': entry.time_slot,
+            'subject': entry.subject,
+            'faculty': entry.faculty,
+            'room': entry.room,
+            'batch': entry.batch,
+            'type': entry.entry_type
+        })
+    return jsonify(result)
 
 @app.route('/api/scholarships/eligible', methods=['POST'])
 def get_eligible_scholarships():
@@ -747,7 +763,11 @@ def init_db():
                 add_column_if_not_exists('scholarship', 'min_cgpa', 'FLOAT DEFAULT 0.0')
                 add_column_if_not_exists('scholarship', 'max_family_income', 'FLOAT DEFAULT 0.0')
                 add_column_if_not_exists('scholarship', 'eligible_categories', 'VARCHAR(200)')
+                add_column_if_not_exists('scholarship', 'eligible_categories', 'VARCHAR(200)')
                 add_column_if_not_exists('scholarship', 'eligible_genders', 'VARCHAR(50)')
+
+                # Migration for Timetable
+                add_column_if_not_exists('timetable', 'division', 'VARCHAR(5)')
 
         except Exception as e:
              print(f"Migration error: {e}")

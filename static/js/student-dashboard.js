@@ -77,6 +77,7 @@ document.addEventListener('DOMContentLoaded', function () {
     loadScholarships();
     loadQueries();
     loadNotifications();
+    loadStudentTimetable();
 
     // Setup scholarship category filter
     const scholarshipCategory = document.getElementById('scholarshipCategory');
@@ -1330,55 +1331,121 @@ function joinClub(clubId) {
 function loadStudentTimetable() {
     if (!currentUser) return;
 
+    const timetableBody = document.getElementById('timetable-body');
+    if (timetableBody) {
+        timetableBody.innerHTML = '<tr><td colspan="7">Loading timetable...</td></tr>';
+    }
+
     fetch(`/api/student/timetable/${currentUser.id}`)
         .then(response => response.json())
         .then(data => {
-            generateTimetableTable(data);
+            if (data && data.length > 0) {
+                generateTimetableTable(data);
+            } else {
+                if (timetableBody) {
+                    timetableBody.innerHTML = '<tr><td colspan="7">No timetable data found for your batch.</td></tr>';
+                }
+            }
         })
         .catch(error => {
             console.error('Error loading timetable:', error);
+            if (timetableBody) {
+                timetableBody.innerHTML = '<tr><td colspan="7">Error loading timetable data.</td></tr>';
+            }
         });
 }
 
-// Generate timetable table
+// Generate timetable table with robust time matching
 function generateTimetableTable(timetableData) {
-    const table = document.getElementById('studentTimetable');
-    if (!table) return;
+    const tableBody = document.getElementById('timetable-body');
+    const tableHeader = document.querySelector('#timetable-grid thead tr');
+    if (!tableBody || !tableHeader) return;
 
-    const timeSlots = ['09:00-10:00', '10:00-11:00', '11:30-12:30', '12:30-13:30', '14:30-15:30', '15:30-16:30'];
-    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    // Clear existing content
+    tableBody.innerHTML = '';
+    tableHeader.innerHTML = '';
 
-    // Create table header
-    let headerHTML = '<thead><tr><th>Time</th>';
-    days.forEach(day => {
-        headerHTML += `<th>${day.charAt(0).toUpperCase() + day.slice(1)}</th>`;
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+    // Normalize times in the data to ensure consistency (08:45 vs 8:45)
+    function normalizeJS(t) {
+        if (!t || t.toLowerCase() === 'break' || t.toLowerCase() === 'recess') return 'Break';
+        const match = t.match(/(\d{1,2}):(\d{2})\s*to\s*(\d{1,2}):(\d{2})/i);
+        if (match) {
+            return `${match[1].padStart(2, '0')}:${match[2]} to ${match[3].padStart(2, '0')}:${match[4]}`;
+        }
+        return t;
+    }
+
+    // Process data to use normalized times
+    const processedData = timetableData.map(item => ({
+        ...item,
+        time: normalizeJS(item.time)
+    }));
+
+    // Identify all unique time slots
+    const slotsMap = {};
+    processedData.forEach(entry => {
+        slotsMap[entry.time] = true;
     });
-    headerHTML += '</tr></thead>';
 
-    // Create table body
-    let bodyHTML = '<tbody>';
-    timeSlots.forEach(timeSlot => {
-        bodyHTML += `<tr><td class="time-slot">${timeSlot}</td>`;
-        days.forEach(day => {
-            const classInfo = timetableData[day] && timetableData[day][timeSlot];
-            if (classInfo) {
+
+    // Use fixed slots for reliability (4 lectures + 1 break)
+    const sortedSlots = [
+        '08:45 to 09:45',
+        '09:45 to 10:45',
+        'Break',
+        '11:30 to 12:30',
+        '12:30 to 01:30'
+    ];
+
+    // 1. Build Header
+    let headerHTML = '<th style="width: 12%; background: #1a237e; color: white;">Day / Time</th>';
+    sortedSlots.forEach(slot => {
+        const label = slot === 'Break' ? 'RECESS' : slot;
+        headerHTML += `<th style="background: #1a237e; color: white; font-size: 0.85rem;">${label}</th>`;
+    });
+    tableHeader.innerHTML = headerHTML;
+
+    // 2. Populate Rows
+    let bodyHTML = '';
+    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+
+    // Update the "Today" badge
+    const badge = document.getElementById('current-day-badge');
+    if (badge) {
+        badge.textContent = `Today: ${today}`;
+    }
+
+    days.forEach(day => {
+        const dayClasses = processedData.filter(d => d.day === day);
+        const isToday = day === today;
+
+        bodyHTML += `<tr class="${isToday ? 'current-day-row' : ''}">
+            <td class="fw-bold" style="background: ${isToday ? '#fff3cd' : '#f8f9fa'}; border-left: ${isToday ? '5px solid #ffc107' : '1px solid #eef2f7'}; text-transform: uppercase; font-size: 0.8rem;">${day}</td>`;
+
+        sortedSlots.forEach(slot => {
+            const classInfo = dayClasses.find(c => c.time === slot);
+
+            if (slot === 'Break') {
+                bodyHTML += `<td style="background: #fff9f0; vertical-align: middle; color: #d97706; font-style: italic; font-weight: 500;">Recess</td>`;
+            } else if (classInfo) {
                 bodyHTML += `
-                    <td class="class-cell ${classInfo.subject_code.toLowerCase()}">
-                        <div class="subject-name">${classInfo.subject_name}</div>
-                        <div class="subject-code">${classInfo.subject_code}</div>
-                        <div class="faculty-name">${classInfo.faculty_name}</div>
-                        <div class="room-number">${classInfo.room_number}</div>
+                    <td style="padding: 15px 10px; border: 1px solid #eef2f7; vertical-align: middle;">
+                        <div class="fw-bold" style="font-size: 1.05rem; color: #1e293b; letter-spacing: -0.01em;">${classInfo.subject}</div>
+                        <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px; font-weight: 500;">
+                            <i class="fas fa-map-marker-alt" style="color: #94a3b8; margin-right: 3px;"></i>${classInfo.room || 'Room TBD'}
+                        </div>
                     </td>
                 `;
             } else {
-                bodyHTML += '<td class="empty-cell">-</td>';
+                bodyHTML += '<td style="background: #fafafa; color: #cbd5e1; font-size: 1.2rem;">-</td>';
             }
         });
         bodyHTML += '</tr>';
     });
-    bodyHTML += '</tbody>';
 
-    table.innerHTML = headerHTML + bodyHTML;
+    tableBody.innerHTML = bodyHTML;
 }
 
 // Open scholarship eligibility check
@@ -1809,137 +1876,3 @@ function setTheme(mode) {
     }
 }
 
-function injectDarkStyles() {
-    if (!document.getElementById('darkModeStyles')) {
-        const style = document.createElement('style');
-        style.id = 'darkModeStyles';
-        style.textContent = `
-            .dark-mode {
-                background-color: #1a1a1a;
-                color: #e0e0e0;
-            }
-            .dark-mode .sidebar {
-                background-color: #242424;
-                border-right: 1px solid #333;
-            }
-            .dark-mode .header {
-                background-color: #242424;
-                border-bottom: 1px solid #333;
-                color: #fff;
-            }
-            .dark-mode .card, .dark-mode .settings-card.premium-ui, .dark-mode .appearance-card {
-                background-color: #2d2d2d !important;
-                color: #fff;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
-            }
-            .dark-mode .card h3, .dark-mode .card-header h3 {
-                color: #fff !important;
-            }
-            .dark-mode .appearance-label span {
-                color: #fff !important;
-            }
-            .dark-mode .appearance-label i {
-                color: #ccc !important;
-            }
-            .dark-mode input, .dark-mode select, .dark-mode textarea {
-                background-color: #383838 !important;
-                color: #fff !important;
-                border-color: #555 !important;
-            }
-            .dark-mode .theme-toggle-group {
-                background-color: #222 !important;
-            }
-            .dark-mode .password-requirements p, .dark-mode .strength-text span:first-child {
-                color: #ccc !important;
-            }
-            .dark-mode .strength-bar-bg {
-                background-color: #444 !important;
-            }
-            /* Menus and common */
-            .dark-mode .menu-item { color: #aaa; }
-            .dark-mode .menu-item:hover, .dark-mode .menu-item.active {
-                background-color: #333; color: #fff;
-            }
-        `;
-        document.head.appendChild(style);
-    }
-}
-
-// Load student timetable
-async function loadStudentTimetable() {
-    if (!currentUser) return;
-
-    try {
-        const response = await fetch(`/api/student/timetable/${currentUser.id}`);
-        const timetable = await response.json();
-
-        if (timetable.error) {
-            console.error(timetable.error);
-            return;
-        }
-
-        const tbody = document.getElementById('timetable-body');
-        if (!tbody) return;
-
-        tbody.innerHTML = '';
-
-        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-        const todayIndex = new Date().getDay(); // 0=Sun, 1=Mon...
-        const dayMap = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-        const currentDayName = dayMap[todayIndex];
-
-        const badge = document.getElementById('current-day-badge');
-        if (badge) {
-            badge.textContent = `Today is ${currentDayName.charAt(0).toUpperCase() + currentDayName.slice(1)}`;
-        }
-
-        days.forEach(day => {
-            const row = document.createElement('tr');
-            if (day === currentDayName) {
-                row.classList.add('current-day-row');
-            }
-
-            // Day Name Cell
-            const dayCell = document.createElement('th');
-            dayCell.textContent = day.charAt(0).toUpperCase() + day.slice(1);
-            dayCell.className = "table-light";
-            row.appendChild(dayCell);
-
-            // Time Slots matching the HTML headers
-            const slots = [
-                '09:00-10:00',
-                '10:00-11:00',
-                '11:30-12:30',
-                '12:30-01:30',
-                '02:15-03:15',
-                '03:15-04:15'
-            ];
-
-            slots.forEach(slot => {
-                const cell = document.createElement('td');
-                const entry = timetable[day] ? timetable[day][slot] : null;
-
-                if (entry) {
-                    let content = `<strong>${entry.subject_name}</strong><br>
-                                 <small>${entry.faculty_name}</small><br>
-                                 <span class="badge bg-secondary">${entry.room_number || 'Room TBD'}</span>`;
-
-                    if (entry.status === 'rescheduled') {
-                        cell.classList.add('rescheduled-slot');
-                        content = `<span class="badge bg-danger rescheduled-badge">Changed</span><br>` + content;
-                    }
-
-                    cell.innerHTML = content;
-                } else {
-                    cell.innerHTML = '<span class="text-muted">-</span>';
-                }
-                row.appendChild(cell);
-            });
-
-            tbody.appendChild(row);
-        });
-
-    } catch (error) {
-        console.error('Error loading timetable:', error);
-    }
-}

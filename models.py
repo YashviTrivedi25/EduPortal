@@ -194,14 +194,23 @@ class Club(db.Model):
 
 class Timetable(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
-    semester = db.Column(db.Integer, nullable=False)
-    day_of_week = db.Column(db.String(10), nullable=False)  # monday, tuesday, etc.
-    time_slot = db.Column(db.String(20), nullable=False)  # 09:00-10:00
-    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
-    faculty_id = db.Column(db.Integer, db.ForeignKey('faculty.id'), nullable=False)
-    room_number = db.Column(db.String(20))
-    academic_year = db.Column(db.String(10), nullable=False)
+    # Flexible columns for PDF ingestion
+    division = db.Column(db.String(5))   # A, B, C
+    batch = db.Column(db.String(10))     # A1, B1, etc.
+    day_of_week = db.Column(db.String(15))
+    time_slot = db.Column(db.String(50))
+    
+    # Raw extracted strings
+    subject_raw = db.Column(db.String(100))
+    faculty_raw = db.Column(db.String(100))
+    room_number = db.Column(db.String(50))
+    
+    # Optional links to core tables (can be populated later if needed)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=True)
+    semester = db.Column(db.Integer, nullable=True)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=True)
+    faculty_id = db.Column(db.Integer, db.ForeignKey('faculty.id'), nullable=True)
+    academic_year = db.Column(db.String(10), nullable=True)
     
     course = db.relationship('Course', backref='timetables')
     subject = db.relationship('Subject', backref='timetable_entries')

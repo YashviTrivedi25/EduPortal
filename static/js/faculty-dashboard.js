@@ -638,77 +638,103 @@ function submitStudentPasswordReset() {
 
 // --- Timetable Management ---
 
-// Load Faculty Timetable
+// Load and generate Faculty Timetable
 async function loadFacultyTimetable() {
     if (!currentUser) return;
 
-    // For now we reuse the student endpoint structure logic or create a similar one.
-    // The plan didn't explicitly detail a 'GET /api/faculty/timetable' but we need one.
-    // Wait, the Student one fetches for a student. Faculty needs their OWN.
-    // I can reuse the logic: if I'm faculty, I want all timetable entries where faculty_id = Me.
-    // I didn't create a specific GET for faculty yet in previous steps (Only POST change). 
-    // I missed that in the plan execution. 
-    // I should create it first OR assume I can fetch it.
-    // Let's create a quick valid endpoint in app.py next or now?
-    // I'll write the JS assuming the endpoint exists: /api/faculty/timetable/<id>
+    const tbody = document.getElementById('faculty-timetable-body');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7">Loading...</td></tr>';
 
     try {
         const response = await fetch(`/api/faculty/timetable/${currentUser.id}`);
-        // If 404, handles gracefully
-        if (!response.ok) throw new Error('Failed to fetch timetable');
+        if (!response.ok) throw new Error('API Error');
+        const data = await response.json();
 
-        const timetable = await response.json();
-
-        const tbody = document.getElementById('faculty-timetable-body');
-        if (!tbody) return;
-
-        tbody.innerHTML = '';
-
-        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-
-        days.forEach(day => {
-            const row = document.createElement('tr');
-
-            // Day Name Cell
-            const dayCell = document.createElement('th');
-            dayCell.textContent = day.charAt(0).toUpperCase() + day.slice(1);
-            dayCell.className = "table-light";
-            row.appendChild(dayCell);
-
-            // Time Slots matching the HTML headers
-            const slots = [
-                '09:00-10:00',
-                '10:00-11:00',
-                '11:30-12:30',
-                '12:30-01:30',
-                '02:15-03:15',
-                '03:15-04:15'
-            ];
-
-            slots.forEach(slot => {
-                const cell = document.createElement('td');
-                const entry = timetable[day] ? timetable[day][slot] : null;
-
-                if (entry) {
-                    let content = `<strong>${entry.subject_name}</strong><br>
-                                 <small>${entry.course_name} (Div ${entry.division || 'All'})</small><br>
-                                 <span class="badge bg-secondary">${entry.room_number || 'Room TBD'}</span><br>
-                                 <button class="btn btn-sm btn-outline-primary mt-1" onclick="openSwapModal(${entry.original_id}, '${entry.subject_name}', '${day}', '${slot}')" style="font-size: 0.7rem; padding: 2px 5px;">Manage</button>`;
-
-                    cell.innerHTML = content;
-                } else {
-                    cell.innerHTML = '<span class="text-muted">-</span>';
-                }
-                row.appendChild(cell);
-            });
-
-            tbody.appendChild(row);
-        });
-
+        if (data && data.length > 0) {
+            generateFacultyTimetableTable(data);
+        } else {
+            tbody.innerHTML = '<tr><td colspan="7">No classes found assigned to you.</td></tr>';
+        }
     } catch (error) {
-        console.error('Error loading timetable:', error);
-        document.getElementById('faculty-timetable-body').innerHTML = '<tr><td colspan="7">No timetable found or API missing.</td></tr>';
+        console.error('Error:', error);
+        if (tbody) tbody.innerHTML = '<tr><td colspan="7">Error loading timetable.</td></tr>';
     }
+}
+
+function generateFacultyTimetableTable(timetableData) {
+    const tableBody = document.getElementById('faculty-timetable-body');
+    const tableHeader = document.querySelector('#faculty-timetable-grid thead tr');
+    if (!tableBody || !tableHeader) return;
+
+    tableBody.innerHTML = '';
+    tableHeader.innerHTML = '';
+
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+
+    function normalizeJS(t) {
+        if (!t || t.toLowerCase() === 'break' || t.toLowerCase() === 'recess') return 'Break';
+        const match = t.match(/(\d{1,2}):(\d{2})\s*to\s*(\d{1,2}):(\d{2})/i);
+        if (match) {
+            return `${match[1].padStart(2, '0')}:${match[2]} to ${match[3].padStart(2, '0')}:${match[4]}`;
+        }
+        return t;
+    }
+
+    const processedData = timetableData.map(item => ({
+        ...item,
+        time: normalizeJS(item.time)
+    }));
+
+    const slotsMap = {};
+    processedData.forEach(entry => { slotsMap[entry.time] = true; });
+
+    function timeToMin(t) {
+        if (t === 'Break') return 11 * 60;
+        const match = t.match(/(\d{2}):(\d{2})/);
+        if (match) return parseInt(match[1]) * 60 + parseInt(match[2]);
+        return 9999;
+    }
+
+    const sortedSlots = Object.keys(slotsMap).sort((a, b) => timeToMin(a) - timeToMin(b));
+
+    // Update Headers
+    let headerHTML = '<th style="width: 12%; background: #1a237e; color: white;">Day / Time</th>';
+    sortedSlots.forEach(slot => {
+        headerHTML += `<th style="background: #1a237e; color: white;">${slot}</th>`;
+    });
+    tableHeader.innerHTML = headerHTML;
+
+    // Update Rows
+    let bodyHTML = '';
+    days.forEach(day => {
+        const dayClasses = processedData.filter(d => d.day === day);
+        const isToday = day === today;
+
+        bodyHTML += `<tr><td class="fw-bold" style="background: ${isToday ? '#fff3cd' : '#f8f9fa'};">${day}</td>`;
+
+        sortedSlots.forEach(slot => {
+            const classInfo = dayClasses.find(c => c.time === slot);
+            if (classInfo) {
+                if (classInfo.time === 'Break') {
+                    bodyHTML += `<td class="recess-slot" style="background: #fff9f0; text-align: center;"><em>Recess</em></td>`;
+                } else {
+                    bodyHTML += `
+                        <td class="lecture-slot" style="padding: 10px; border: 1px solid #eef2f7;">
+                            <div class="fw-bold text-primary">${classInfo.subject}</div>
+                            <div class="small">Batch: <strong>${classInfo.batch || '-'}</strong></div>
+                            <div class="badge bg-secondary" style="margin-top: 5px;">Room ${classInfo.room || ''}</div>
+                        </td>
+                    `;
+                }
+            } else {
+                bodyHTML += '<td style="color: #ddd; text-align: center;">-</td>';
+            }
+        });
+        bodyHTML += '</tr>';
+    });
+
+    tableBody.innerHTML = bodyHTML;
 }
 
 // Swap Modal handling
