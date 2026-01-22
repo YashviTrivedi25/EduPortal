@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
     <div class="dashboard-container">
         <!-- Sidebar -->
@@ -21,32 +23,32 @@
             </div>
             <ul class="sidebar-menu">
                 <li><a href="#dashboard" class="menu-item active" onclick="showSection('dashboard')">
-                    <i class="fas fa-tachometer-alt"></i> Dashboard
-                </a></li>
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a></li>
                 <li><a href="#students" class="menu-item" onclick="showSection('students')">
-                    <i class="fas fa-user-graduate"></i> Manage Students
-                </a></li>
+                        <i class="fas fa-user-graduate"></i> Manage Students
+                    </a></li>
                 <li><a href="#faculty" class="menu-item" onclick="showSection('faculty')">
-                    <i class="fas fa-chalkboard-teacher"></i> Manage Faculty
-                </a></li>
+                        <i class="fas fa-chalkboard-teacher"></i> Manage Faculty
+                    </a></li>
                 <li><a href="#courses" class="menu-item" onclick="showSection('courses')">
-                    <i class="fas fa-book"></i> Manage Courses
-                </a></li>
+                        <i class="fas fa-book"></i> Manage Courses
+                    </a></li>
                 <li><a href="#assignments" class="menu-item" onclick="showSection('assignments')">
-                    <i class="fas fa-tasks"></i> Subject Assignments
-                </a></li>
+                        <i class="fas fa-tasks"></i> Subject Assignments
+                    </a></li>
                 <li><a href="#calendar" class="menu-item" onclick="showSection('calendar')">
-                    <i class="fas fa-calendar"></i> Academic Calendar
-                </a></li>
+                        <i class="fas fa-calendar"></i> Academic Calendar
+                    </a></li>
                 <li><a href="#notices" class="menu-item" onclick="showSection('notices')">
-                    <i class="fas fa-bullhorn"></i> Publish Notices
-                </a></li>
+                        <i class="fas fa-bullhorn"></i> Publish Notices
+                    </a></li>
                 <li><a href="#fees" class="menu-item" onclick="showSection('fees')">
-                    <i class="fas fa-money-bill"></i> Fee Management
-                </a></li>
+                        <i class="fas fa-money-bill"></i> Fee Management
+                    </a></li>
                 <li><a href="#reports" class="menu-item" onclick="showSection('reports')">
-                    <i class="fas fa-chart-bar"></i> Reports
-                </a></li>
+                        <i class="fas fa-chart-bar"></i> Reports
+                    </a></li>
             </ul>
             <div class="sidebar-footer">
                 <button onclick="logout()" class="logout-btn">
@@ -59,7 +61,8 @@
         <main class="main-content">
             <!-- Header -->
             <header class="header">
-                <div class="header-left">
+                <div class="header-left" style="display: flex; align-items: center;">
+                    <i class="fas fa-bars menu-toggle" onclick="toggleSidebar()"></i>
                     <h1 id="pageTitle">Admin Dashboard</h1>
                 </div>
                 <div class="header-right">
@@ -87,7 +90,7 @@
                             <span class="stat-change positive">+12 this month</span>
                         </div>
                     </div>
-                    
+
                     <div class="stat-card">
                         <div class="stat-icon faculty-stat">
                             <i class="fas fa-chalkboard-teacher"></i>
@@ -98,7 +101,7 @@
                             <span class="stat-change positive">+3 this month</span>
                         </div>
                     </div>
-                    
+
                     <div class="stat-card">
                         <div class="stat-icon courses-stat">
                             <i class="fas fa-book"></i>
@@ -109,7 +112,7 @@
                             <span class="stat-change neutral">No change</span>
                         </div>
                     </div>
-                    
+
                     <div class="stat-card">
                         <div class="stat-icon revenue-stat">
                             <i class="fas fa-rupee-sign"></i>
@@ -127,7 +130,7 @@
                         <h3>Student Enrollment Trends</h3>
                         <canvas id="enrollmentChart"></canvas>
                     </div>
-                    
+
                     <div class="chart-container">
                         <h3>Department-wise Distribution</h3>
                         <canvas id="departmentChart"></canvas>
@@ -147,7 +150,7 @@
                                 <small>2 hours ago</small>
                             </div>
                         </div>
-                        
+
                         <div class="activity-item">
                             <div class="activity-icon">
                                 <i class="fas fa-bullhorn"></i>
@@ -158,7 +161,7 @@
                                 <small>4 hours ago</small>
                             </div>
                         </div>
-                        
+
                         <div class="activity-item">
                             <div class="activity-icon">
                                 <i class="fas fa-money-bill"></i>
@@ -186,7 +189,7 @@
                         </button>
                     </div>
                 </div>
-                
+
                 <div class="search-filters">
                     <input type="text" id="studentSearch" placeholder="Search students..." onkeyup="searchStudents()">
                     <select id="departmentFilter" onchange="filterStudents()">
@@ -208,7 +211,7 @@
                         <option value="8">8th Semester</option>
                     </select>
                 </div>
-                
+
                 <div class="table-container">
                     <table class="data-table">
                         <thead>
@@ -237,7 +240,7 @@
                         <i class="fas fa-plus"></i> Add Faculty
                     </button>
                 </div>
-                
+
                 <div class="faculty-grid">
                     <div class="faculty-card">
                         <div class="faculty-avatar">
@@ -254,7 +257,7 @@
                             <button onclick="viewFacultyDetails('FAC001')">View Details</button>
                         </div>
                     </div>
-                    
+
                     <div class="faculty-card">
                         <div class="faculty-avatar">
                             <img src="https://via.placeholder.com/80" alt="Faculty">
@@ -281,7 +284,7 @@
                         <i class="fas fa-plus"></i> Add Course
                     </button>
                 </div>
-                
+
                 <div class="courses-list">
                     <div class="course-item">
                         <div class="course-info">
@@ -295,7 +298,7 @@
                             <button onclick="manageSemesters('CSE')">Manage Semesters</button>
                         </div>
                     </div>
-                    
+
                     <div class="course-item">
                         <div class="course-info">
                             <h4>Electronics & Communication</h4>
@@ -319,7 +322,7 @@
                         <i class="fas fa-plus"></i> Create Assignment
                     </button>
                 </div>
-                
+
                 <div class="assignment-filters">
                     <select id="assignmentDepartment">
                         <option value="">All Departments</option>
@@ -335,7 +338,7 @@
                         <option value="4">4th Semester</option>
                     </select>
                 </div>
-                
+
                 <div class="assignments-table">
                     <table class="data-table">
                         <thead>
@@ -363,19 +366,19 @@
                         <i class="fas fa-plus"></i> Add Event
                     </button>
                 </div>
-                
+
                 <div class="calendar-container">
                     <div class="calendar-header">
                         <button onclick="previousMonth()">&lt;</button>
                         <h3 id="currentMonth">January 2026</h3>
                         <button onclick="nextMonth()">&gt;</button>
                     </div>
-                    
+
                     <div class="calendar-grid" id="calendarGrid">
                         <!-- Calendar will be generated dynamically -->
                     </div>
                 </div>
-                
+
                 <div class="upcoming-events">
                     <h3>Upcoming Events</h3>
                     <div class="events-list">
@@ -386,7 +389,7 @@
                                 <p>All departments</p>
                             </div>
                         </div>
-                        
+
                         <div class="event-item">
                             <div class="event-date">Jan 20</div>
                             <div class="event-info">
@@ -406,7 +409,7 @@
                         <i class="fas fa-plus"></i> Create Notice
                     </button>
                 </div>
-                
+
                 <div class="notice-form">
                     <form id="noticeForm">
                         <div class="form-row">
@@ -414,7 +417,7 @@
                                 <label for="noticeTitle">Title:</label>
                                 <input type="text" id="noticeTitle" required>
                             </div>
-                            
+
                             <div class="form-group">
                                 <label for="noticeType">Type:</label>
                                 <select id="noticeType" required>
@@ -427,7 +430,7 @@
                                 </select>
                             </div>
                         </div>
-                        
+
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="targetAudience">Target Audience:</label>
@@ -439,7 +442,7 @@
                                     <option value="department">Specific Department</option>
                                 </select>
                             </div>
-                            
+
                             <div class="form-group" id="departmentGroup" style="display: none;">
                                 <label for="noticeDepartment">Department:</label>
                                 <select id="noticeDepartment">
@@ -450,23 +453,23 @@
                                 </select>
                             </div>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="noticeContent">Content:</label>
                             <textarea id="noticeContent" rows="5" required></textarea>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="expiryDate">Expiry Date (Optional):</label>
                             <input type="date" id="expiryDate">
                         </div>
-                        
+
                         <button type="submit" class="publish-btn">
                             <i class="fas fa-bullhorn"></i> Publish Notice
                         </button>
                     </form>
                 </div>
-                
+
                 <div class="published-notices">
                     <h3>Recently Published Notices</h3>
                     <div class="notices-list">
@@ -496,7 +499,7 @@
                         <i class="fas fa-edit"></i> Update Fee Structure
                     </button>
                 </div>
-                
+
                 <div class="fee-overview">
                     <div class="fee-stats">
                         <div class="fee-stat-card">
@@ -513,7 +516,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="fee-structure">
                     <h3>Current Fee Structure</h3>
                     <table class="data-table">
@@ -540,26 +543,26 @@
                 <div class="section-header">
                     <h2>Reports & Analytics</h2>
                 </div>
-                
+
                 <div class="reports-grid">
                     <div class="report-card">
                         <h4>Student Performance Report</h4>
                         <p>Semester-wise academic performance analysis</p>
                         <button onclick="generateReport('student-performance')">Generate Report</button>
                     </div>
-                    
+
                     <div class="report-card">
                         <h4>Attendance Report</h4>
                         <p>Department and class-wise attendance statistics</p>
                         <button onclick="generateReport('attendance')">Generate Report</button>
                     </div>
-                    
+
                     <div class="report-card">
                         <h4>Fee Collection Report</h4>
                         <p>Financial summary and collection analysis</p>
                         <button onclick="generateReport('fee-collection')">Generate Report</button>
                     </div>
-                    
+
                     <div class="report-card">
                         <h4>Faculty Performance Report</h4>
                         <p>Teaching load and performance metrics</p>
@@ -572,4 +575,5 @@
 
     <script src="{{ url_for('static', filename='js/admin-dashboard.js') }}"></script>
 </body>
+
 </html>

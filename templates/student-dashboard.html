@@ -76,7 +76,8 @@
         <main class="main-content">
             <!-- Header -->
             <header class="header">
-                <div class="header-left">
+                <div class="header-left" style="display: flex; align-items: center;">
+                    <i class="fas fa-bars menu-toggle" onclick="toggleSidebar()"></i>
                     <h1 id="pageTitle">Dashboard</h1>
                 </div>
                 <div class="header-right">
@@ -447,11 +448,45 @@
                     </div>
                 </div>
                 <div class="timetable-container">
-                    <div class="timetable-wrapper">
-                        <table class="timetable" id="studentTimetable">
-                            <!-- Timetable will be generated here -->
+                    <div class="row mb-3">
+                        <div class="col-md-12 text-end">
+                            <span class="badge bg-warning text-dark" id="current-day-badge">Today: Monday</span>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered text-center align-middle" id="timetable-grid">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th style="width: 10%">Day / Time</th>
+                                    <th>09:00 - 10:00</th>
+                                    <th>10:00 - 11:00</th>
+                                    <th>11:30 - 12:30</th>
+                                    <th>12:30 - 01:30</th>
+                                    <th>02:15 - 03:15</th>
+                                    <th>03:15 - 04:15</th>
+                                </tr>
+                            </thead>
+                            <tbody id="timetable-body">
+                                <!-- Timetable rows will be populated here -->
+                            </tbody>
                         </table>
                     </div>
+                    <style>
+                        .current-day-row {
+                            background-color: #fff3cd !important;
+                            border: outline 2px solid #ffc107 !important;
+                        }
+
+                        .rescheduled-slot {
+                            background-color: #d1e7dd;
+                            border-left: 4px solid #198754;
+                        }
+
+                        .rescheduled-badge {
+                            font-size: 0.7em;
+                            vertical-align: top;
+                        }
+                    </style>
                 </div>
             </section>
 
@@ -466,21 +501,16 @@
                             That Suit You</h2>
                     </div>
 
-                    <div class="scholarship-filters"
-                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; align-items: end;">
+                    <div class="scholarship-filters">
                         <div class="filter-group">
-                            <label for="searchIncome"
-                                style="display: block; margin-bottom: 8px; font-weight: 500;">Annual Family Income
-                                (₹)</label>
+                            <label for="searchIncome">Annual Income (₹)</label>
                             <input type="number" id="searchIncome" placeholder="Enter annual income"
-                                style="width: 100%; padding: 10px; border-radius: 6px; border: none; font-size: 1rem;">
+                                class="filter-control">
                         </div>
 
                         <div class="filter-group">
-                            <label for="searchCategory"
-                                style="display: block; margin-bottom: 8px; font-weight: 500;">Category</label>
-                            <select id="searchCategory"
-                                style="width: 100%; padding: 10px; border-radius: 6px; border: none; font-size: 1rem; cursor: pointer;">
+                            <label for="searchCategory">Category</label>
+                            <select id="searchCategory" class="filter-control">
                                 <option value="">Select Category</option>
                                 <option value="general">General</option>
                                 <option value="obc">OBC</option>
@@ -491,10 +521,8 @@
                         </div>
 
                         <div class="filter-group">
-                            <label for="searchGender"
-                                style="display: block; margin-bottom: 8px; font-weight: 500;">Gender</label>
-                            <select id="searchGender"
-                                style="width: 100%; padding: 10px; border-radius: 6px; border: none; font-size: 1rem; cursor: pointer;">
+                            <label for="searchGender">Gender</label>
+                            <select id="searchGender" class="filter-control">
                                 <option value="">Select Gender</option>
                                 <option value="male">Male</option>
                                 <option value="female">Female</option>
@@ -503,9 +531,8 @@
                         </div>
 
                         <div class="filter-group">
-                            <button onclick="findScholarships()"
-                                style="width: 100%; padding: 10px; background: #0d47a1; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                                <i class="fas fa-search-plus"></i> Find Matching Scholarships
+                            <button onclick="findScholarships()" class="search-btn">
+                                <i class="fas fa-search-plus"></i> Find Scholarships
                             </button>
                         </div>
                     </div>

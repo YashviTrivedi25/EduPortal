@@ -1,0 +1,132 @@
+<!-- Timetable Section -->
+<div id="timetable-section" class="content-section" style="display: none;">
+    <h3 class="mb-4">My Timetable</h3>
+    <div class="row mb-3">
+        <div class="col-md-12 text-end">
+            <span class="badge bg-info text-dark" id="current-day-badge"></span>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered text-center align-middle" id="timetable-grid">
+            <thead class="table-dark">
+                <tr>
+                    <th style="width: 10%">Day / Time</th>
+                    <th>09:00 - 10:00</th>
+                    <th>10:00 - 11:00</th>
+                    <th>11:30 - 12:30</th>
+                    <th>12:30 - 01:30</th>
+                    <th>02:15 - 03:15</th>
+                    <th>03:15 - 04:15</th>
+                </tr>
+            </thead>
+            <tbody id="timetable-body">
+                <!-- Timetable rows will be populated here -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .current-day-row {
+        background-color: #fff3cd !important;
+        border: 2px solid #ffc107 !important;
+    }
+
+    .rescheduled-slot {
+        background-color: #d1e7dd;
+        border-left: 4px solid #198754;
+    }
+
+    .rescheduled-badge {
+        font-size: 0.7em;
+        vertical-align: top;
+    }
+</style>
+
+<script>
+    async function loadTimetable() {
+        try {
+            const response = await fetch(`/api/student/timetable/${currentUser.id}`);
+            const timetable = await response.json();
+
+            if (timetable.error) {
+                console.error(timetable.error);
+                return;
+            }
+
+            const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            const timeSlots = [
+                '09:00-10:00', '10:00-11:00', '11:00-12:00', '12:00-01:00', '02:00-03:00', '03:00-04:00'
+            ]; // Adjusted to match DB/Seed format more generically or we need precise mapping.
+            // The seed data had '09:00-10:00', '10:00-11:00', '11:30-12:30'. 
+            // We should probably rely on the time slots present in the data or fix the columns.
+            // For dynamic rendering, better to have fixed slots.
+            // Let's use the ones from the seed for now in the columns: 
+            // 9-10, 10-11, 11:30-12:30.
+            // Wait, the Table Head above has hardcoded columns. This might mismatch DB data.
+            // Ideally we fetch available slots. But for this MVP let's map best effort.
+
+            const tbody = document.getElementById('timetable-body');
+            tbody.innerHTML = '';
+
+            const todayIndex = new Date().getDay(); // 0=Sun, 1=Mon...
+            const dayMap = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            const currentDayName = dayMap[todayIndex];
+
+            document.getElementById('current-day-badge').textContent = `Today is ${currentDayName.charAt(0).toUpperCase() + currentDayName.slice(1)}`;
+
+            days.forEach(day => {
+                const row = document.createElement('tr');
+                if (day === currentDayName) {
+                    row.classList.add('current-day-row');
+                }
+
+                // Day Name Cell
+                const dayCell = document.createElement('th');
+                dayCell.textContent = day.charAt(0).toUpperCase() + day.slice(1);
+                dayCell.className = "table-light";
+                row.appendChild(dayCell);
+
+                // Time Slots
+                // We need to match the time_slot strings from DB to columns.
+                // DB has: "09:00-10:00", "10:00-11:00", "11:30-12:30"
+                // Let's iterate fixed columns and look up.
+                const slots = [
+                    '09:00-10:00',
+                    '10:00-11:00',
+                    '11:30-12:30',
+                    '12:30-01:30', # Not in seed yet
+                '02:15-03:15',
+                    '03:15-04:15'
+                ];
+
+                slots.forEach(slot => {
+                    const cell = document.createElement('td');
+                    const entry = timetable[day][slot];
+
+                    if (entry) {
+                        let content = `<strong>${entry.subject_name}</strong><br>
+                                 <small>${entry.faculty_name}</small><br>
+                                 <span class="badge bg-secondary">${entry.room_number || 'Room TBD'}</span>`;
+
+                        if (entry.status === 'rescheduled') {
+                            cell.classList.add('rescheduled-slot');
+                            content = `<span class="badge bg-danger rescheduled-badge">Changed</span><br>` + content;
+                        }
+
+                        cell.innerHTML = content;
+                    } else {
+                        cell.innerHTML = '<span class="text-muted">-</span>';
+                    }
+                    row.appendChild(cell);
+                });
+
+                tbody.appendChild(row);
+            });
+
+        } catch (error) {
+            console.error('Error loading timetable:', error);
+        }
+    }
+</script>

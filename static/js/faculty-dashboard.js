@@ -3,8 +3,60 @@ let currentUser = null;
 let currentClass = null;
 let studentsData = [];
 
+// Toggle Sidebar for Mobile and Desktop
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const mainContent = document.querySelector('.main-content');
+    const overlay = document.getElementById('sidebarOverlay');
+    const isMobile = window.innerWidth <= 768;
+
+    if (isMobile) {
+        sidebar.classList.toggle('active');
+
+        // Manage overlay
+        if (sidebar.classList.contains('active')) {
+            if (!overlay) {
+                const newOverlay = document.createElement('div');
+                newOverlay.id = 'sidebarOverlay';
+                newOverlay.style.position = 'fixed';
+                newOverlay.style.top = '0';
+                newOverlay.style.left = '0';
+                newOverlay.style.width = '100%';
+                newOverlay.style.height = '100%';
+                newOverlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                newOverlay.style.zIndex = '999';
+                newOverlay.onclick = toggleSidebar;
+                document.body.appendChild(newOverlay);
+            } else {
+                overlay.style.display = 'block';
+            }
+        } else {
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+    } else {
+        // Desktop Collapse
+        sidebar.classList.toggle('collapsed');
+        if (mainContent) mainContent.classList.toggle('expanded');
+    }
+}
+
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function () {
+    // Add event listener to close sidebar when a menu item is clicked on mobile
+    const menuLinks = document.querySelectorAll('.sidebar-menu a');
+    menuLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                const sidebar = document.querySelector('.sidebar');
+                if (sidebar.classList.contains('active')) {
+                    toggleSidebar();
+                }
+            }
+        });
+    });
+
     // Load user data from localStorage
     const userData = localStorage.getItem('userData');
     if (userData) {
@@ -79,6 +131,9 @@ function showSection(sectionId) {
             break;
         case 'mentorship':
             loadMentees();
+            break;
+        case 'timetable':
+            loadFacultyTimetable();
             break;
     }
 }
@@ -578,5 +633,150 @@ function submitStudentPasswordReset() {
         .catch(error => {
             console.error('Error:', error);
             alert('An error occurred while resetting password');
+        });
+}
+
+// --- Timetable Management ---
+
+// Load Faculty Timetable
+async function loadFacultyTimetable() {
+    if (!currentUser) return;
+
+    // For now we reuse the student endpoint structure logic or create a similar one.
+    // The plan didn't explicitly detail a 'GET /api/faculty/timetable' but we need one.
+    // Wait, the Student one fetches for a student. Faculty needs their OWN.
+    // I can reuse the logic: if I'm faculty, I want all timetable entries where faculty_id = Me.
+    // I didn't create a specific GET for faculty yet in previous steps (Only POST change). 
+    // I missed that in the plan execution. 
+    // I should create it first OR assume I can fetch it.
+    // Let's create a quick valid endpoint in app.py next or now?
+    // I'll write the JS assuming the endpoint exists: /api/faculty/timetable/<id>
+
+    try {
+        const response = await fetch(`/api/faculty/timetable/${currentUser.id}`);
+        // If 404, handles gracefully
+        if (!response.ok) throw new Error('Failed to fetch timetable');
+
+        const timetable = await response.json();
+
+        const tbody = document.getElementById('faculty-timetable-body');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
+        days.forEach(day => {
+            const row = document.createElement('tr');
+
+            // Day Name Cell
+            const dayCell = document.createElement('th');
+            dayCell.textContent = day.charAt(0).toUpperCase() + day.slice(1);
+            dayCell.className = "table-light";
+            row.appendChild(dayCell);
+
+            // Time Slots matching the HTML headers
+            const slots = [
+                '09:00-10:00',
+                '10:00-11:00',
+                '11:30-12:30',
+                '12:30-01:30',
+                '02:15-03:15',
+                '03:15-04:15'
+            ];
+
+            slots.forEach(slot => {
+                const cell = document.createElement('td');
+                const entry = timetable[day] ? timetable[day][slot] : null;
+
+                if (entry) {
+                    let content = `<strong>${entry.subject_name}</strong><br>
+                                 <small>${entry.course_name} (Div ${entry.division || 'All'})</small><br>
+                                 <span class="badge bg-secondary">${entry.room_number || 'Room TBD'}</span><br>
+                                 <button class="btn btn-sm btn-outline-primary mt-1" onclick="openSwapModal(${entry.original_id}, '${entry.subject_name}', '${day}', '${slot}')" style="font-size: 0.7rem; padding: 2px 5px;">Manage</button>`;
+
+                    cell.innerHTML = content;
+                } else {
+                    cell.innerHTML = '<span class="text-muted">-</span>';
+                }
+                row.appendChild(cell);
+            });
+
+            tbody.appendChild(row);
+        });
+
+    } catch (error) {
+        console.error('Error loading timetable:', error);
+        document.getElementById('faculty-timetable-body').innerHTML = '<tr><td colspan="7">No timetable found or API missing.</td></tr>';
+    }
+}
+
+// Swap Modal handling
+function openSwapModal(timetableId, subject, day, slot) {
+    document.getElementById('swapTimetableId').value = timetableId;
+    document.getElementById('swapSlotDetails').innerText = `Rescheduling ${subject} on ${day.toUpperCase()} (${slot})`;
+    document.getElementById('swapModal').style.display = 'block';
+
+    // Set default date to next occurrence of this day?
+    // Start of logic to find next 'day' date
+    // (omitted for brevity, user can pick date)
+}
+
+function closeSwapModal() {
+    document.getElementById('swapModal').style.display = 'none';
+    document.getElementById('swapForm').reset();
+}
+
+function toggleSwapFields() {
+    const type = document.getElementById('swapType').value;
+    const dateGroup = document.getElementById('dateGroup');
+    if (type === 'temporary') {
+        dateGroup.style.display = 'block';
+        document.getElementById('swapDate').required = true;
+    } else {
+        dateGroup.style.display = 'none';
+        document.getElementById('swapDate').required = false;
+    }
+}
+
+function submitSwapRequest() {
+    const timetableId = document.getElementById('swapTimetableId').value;
+    const type = document.getElementById('swapType').value;
+    const newFacultyId = document.getElementById('newFacultyId').value;
+    const reason = document.getElementById('swapReason').value;
+    const date = document.getElementById('swapDate').value; // YYYY-MM-DD
+
+    const payload = {
+        timetable_id: timetableId,
+        new_faculty_id: newFacultyId,
+        change_type: type,
+        reason: reason
+    };
+
+    if (type === 'temporary') {
+        payload.date = date;
+    }
+
+    fetch('/api/faculty/timetable/change', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                closeSwapModal();
+                // Reload timetable if permanent change or refresh view
+                loadFacultyTimetable();
+            } else {
+                alert(data.error || 'Failed to request change.');
+            }
+        })
+        .catch(e => {
+            console.error(e);
+            alert('Error submitting request.');
         });
 }

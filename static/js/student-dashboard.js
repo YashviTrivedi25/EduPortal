@@ -2,8 +2,60 @@
 let currentUser = null;
 let marksChart = null;
 
+// Toggle Sidebar for Mobile and Desktop
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const mainContent = document.querySelector('.main-content'); // Add this line
+    const overlay = document.getElementById('sidebarOverlay');
+    const isMobile = window.innerWidth <= 768;
+
+    if (isMobile) {
+        sidebar.classList.toggle('active');
+
+        // Manage overlay
+        if (sidebar.classList.contains('active')) {
+            if (!overlay) {
+                const newOverlay = document.createElement('div');
+                newOverlay.id = 'sidebarOverlay';
+                newOverlay.style.position = 'fixed';
+                newOverlay.style.top = '0';
+                newOverlay.style.left = '0';
+                newOverlay.style.width = '100%';
+                newOverlay.style.height = '100%';
+                newOverlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                newOverlay.style.zIndex = '999';
+                newOverlay.onclick = toggleSidebar;
+                document.body.appendChild(newOverlay);
+            } else {
+                overlay.style.display = 'block';
+            }
+        } else {
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+    } else {
+        // Desktop Collapse
+        sidebar.classList.toggle('collapsed');
+        if (mainContent) mainContent.classList.toggle('expanded');
+    }
+}
+
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function () {
+    // Add event listener to close sidebar when a menu item is clicked on mobile
+    const menuLinks = document.querySelectorAll('.sidebar-menu a');
+    menuLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                const sidebar = document.querySelector('.sidebar');
+                if (sidebar.classList.contains('active')) {
+                    toggleSidebar();
+                }
+            }
+        });
+    });
+
     // Load user data from localStorage
     const userData = localStorage.getItem('userData');
     if (userData) {
@@ -1810,5 +1862,84 @@ function injectDarkStyles() {
             }
         `;
         document.head.appendChild(style);
+    }
+}
+
+// Load student timetable
+async function loadStudentTimetable() {
+    if (!currentUser) return;
+
+    try {
+        const response = await fetch(`/api/student/timetable/${currentUser.id}`);
+        const timetable = await response.json();
+
+        if (timetable.error) {
+            console.error(timetable.error);
+            return;
+        }
+
+        const tbody = document.getElementById('timetable-body');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const todayIndex = new Date().getDay(); // 0=Sun, 1=Mon...
+        const dayMap = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const currentDayName = dayMap[todayIndex];
+
+        const badge = document.getElementById('current-day-badge');
+        if (badge) {
+            badge.textContent = `Today is ${currentDayName.charAt(0).toUpperCase() + currentDayName.slice(1)}`;
+        }
+
+        days.forEach(day => {
+            const row = document.createElement('tr');
+            if (day === currentDayName) {
+                row.classList.add('current-day-row');
+            }
+
+            // Day Name Cell
+            const dayCell = document.createElement('th');
+            dayCell.textContent = day.charAt(0).toUpperCase() + day.slice(1);
+            dayCell.className = "table-light";
+            row.appendChild(dayCell);
+
+            // Time Slots matching the HTML headers
+            const slots = [
+                '09:00-10:00',
+                '10:00-11:00',
+                '11:30-12:30',
+                '12:30-01:30',
+                '02:15-03:15',
+                '03:15-04:15'
+            ];
+
+            slots.forEach(slot => {
+                const cell = document.createElement('td');
+                const entry = timetable[day] ? timetable[day][slot] : null;
+
+                if (entry) {
+                    let content = `<strong>${entry.subject_name}</strong><br>
+                                 <small>${entry.faculty_name}</small><br>
+                                 <span class="badge bg-secondary">${entry.room_number || 'Room TBD'}</span>`;
+
+                    if (entry.status === 'rescheduled') {
+                        cell.classList.add('rescheduled-slot');
+                        content = `<span class="badge bg-danger rescheduled-badge">Changed</span><br>` + content;
+                    }
+
+                    cell.innerHTML = content;
+                } else {
+                    cell.innerHTML = '<span class="text-muted">-</span>';
+                }
+                row.appendChild(cell);
+            });
+
+            tbody.appendChild(row);
+        });
+
+    } catch (error) {
+        console.error('Error loading timetable:', error);
     }
 }

@@ -5,8 +5,60 @@ let departmentChart = null;
 let currentMonth = new Date().getMonth();
 let currentYear = new Date().getFullYear();
 
+// Toggle Sidebar for Mobile and Desktop
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const mainContent = document.querySelector('.main-content');
+    const overlay = document.getElementById('sidebarOverlay');
+    const isMobile = window.innerWidth <= 768;
+
+    if (isMobile) {
+        sidebar.classList.toggle('active');
+
+        // Manage overlay
+        if (sidebar.classList.contains('active')) {
+            if (!overlay) {
+                const newOverlay = document.createElement('div');
+                newOverlay.id = 'sidebarOverlay';
+                newOverlay.style.position = 'fixed';
+                newOverlay.style.top = '0';
+                newOverlay.style.left = '0';
+                newOverlay.style.width = '100%';
+                newOverlay.style.height = '100%';
+                newOverlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                newOverlay.style.zIndex = '999';
+                newOverlay.onclick = toggleSidebar;
+                document.body.appendChild(newOverlay);
+            } else {
+                overlay.style.display = 'block';
+            }
+        } else {
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+    } else {
+        // Desktop Collapse
+        sidebar.classList.toggle('collapsed');
+        if (mainContent) mainContent.classList.toggle('expanded');
+    }
+}
+
 // Initialize dashboard
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
+    // Add event listener to close sidebar when a menu item is clicked on mobile
+    const menuLinks = document.querySelectorAll('.sidebar-menu a');
+    menuLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                const sidebar = document.querySelector('.sidebar');
+                if (sidebar.classList.contains('active')) {
+                    toggleSidebar();
+                }
+            }
+        });
+    });
+
     // Load user data from localStorage
     const userData = localStorage.getItem('userData');
     if (userData) {
@@ -16,20 +68,20 @@ document.addEventListener('DOMContentLoaded', function() {
         // Redirect to login if no user data
         window.location.href = '/';
     }
-    
+
     // Initialize charts
     initializeCharts();
-    
+
     // Load initial data
     loadDashboardStats();
     loadStudentsData();
     loadFacultyData();
     loadCoursesData();
     loadPublishedNotices();
-    
+
     // Initialize calendar
     generateCalendar();
-    
+
     // Setup form handlers
     setupFormHandlers();
 });
@@ -46,22 +98,22 @@ function showSection(sectionId) {
     // Hide all sections
     const sections = document.querySelectorAll('.content-section');
     sections.forEach(section => section.classList.remove('active'));
-    
+
     // Show selected section
     const targetSection = document.getElementById(sectionId);
     if (targetSection) {
         targetSection.classList.add('active');
     }
-    
+
     // Update menu items
     const menuItems = document.querySelectorAll('.menu-item');
     menuItems.forEach(item => item.classList.remove('active'));
-    
+
     const activeMenuItem = document.querySelector(`[onclick="showSection('${sectionId}')"]`);
     if (activeMenuItem) {
         activeMenuItem.classList.add('active');
     }
-    
+
     // Update page title
     const titles = {
         'dashboard': 'Admin Dashboard',
@@ -74,11 +126,11 @@ function showSection(sectionId) {
         'fees': 'Fee Management',
         'reports': 'Reports & Analytics'
     };
-    
+
     document.getElementById('pageTitle').textContent = titles[sectionId] || 'Admin Dashboard';
-    
+
     // Load section-specific data
-    switch(sectionId) {
+    switch (sectionId) {
         case 'students':
             loadStudentsData();
             break;
@@ -129,7 +181,7 @@ function initializeCharts() {
             }
         });
     }
-    
+
     // Department Chart
     const departmentCtx = document.getElementById('departmentChart');
     if (departmentCtx) {
@@ -198,7 +250,7 @@ function loadStudentsData() {
         { rollNo: '2023004', name: 'Sarah Wilson', department: 'CE', semester: 1, cgpa: 9.1, status: 'Active' },
         { rollNo: '2023005', name: 'David Brown', department: 'CSE', semester: 5, cgpa: 7.5, status: 'Active' }
     ];
-    
+
     updateStudentsTable(mockStudents);
 }
 
@@ -206,9 +258,9 @@ function loadStudentsData() {
 function updateStudentsTable(students) {
     const tableBody = document.getElementById('studentsTableBody');
     if (!tableBody) return;
-    
+
     tableBody.innerHTML = '';
-    
+
     students.forEach(student => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -262,7 +314,7 @@ function loadAssignmentsData() {
         { subject: 'Algorithms', faculty: 'Prof. John Smith', department: 'CSE', semester: 5, year: '2025-26' },
         { subject: 'Digital Electronics', faculty: 'Dr. Sarah Johnson', department: 'ECE', semester: 3, year: '2025-26' }
     ];
-    
+
     updateAssignmentsTable(mockAssignments);
 }
 
@@ -270,9 +322,9 @@ function loadAssignmentsData() {
 function updateAssignmentsTable(assignments) {
     const tableBody = document.getElementById('assignmentsTableBody');
     if (!tableBody) return;
-    
+
     tableBody.innerHTML = '';
-    
+
     assignments.forEach((assignment, index) => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -297,7 +349,7 @@ function loadFeeData() {
         { course: 'ECE', semester: 3, tuition: 48000, lab: 4500, other: 2000, total: 54500 },
         { course: 'ME', semester: 7, tuition: 45000, lab: 3000, other: 2000, total: 50000 }
     ];
-    
+
     updateFeeStructureTable(mockFeeStructure);
 }
 
@@ -305,9 +357,9 @@ function loadFeeData() {
 function updateFeeStructureTable(feeStructure) {
     const tableBody = document.getElementById('feeStructureBody');
     if (!tableBody) return;
-    
+
     tableBody.innerHTML = '';
-    
+
     feeStructure.forEach((fee, index) => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -329,21 +381,21 @@ function updateFeeStructureTable(feeStructure) {
 function generateCalendar() {
     const calendarGrid = document.getElementById('calendarGrid');
     const currentMonthEl = document.getElementById('currentMonth');
-    
+
     if (!calendarGrid || !currentMonthEl) return;
-    
+
     const monthNames = [
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
     ];
-    
+
     currentMonthEl.textContent = `${monthNames[currentMonth]} ${currentYear}`;
-    
+
     const firstDay = new Date(currentYear, currentMonth, 1).getDay();
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-    
+
     calendarGrid.innerHTML = '';
-    
+
     // Add day headers
     const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     dayHeaders.forEach(day => {
@@ -357,32 +409,32 @@ function generateCalendar() {
         dayHeader.style.color = 'white';
         calendarGrid.appendChild(dayHeader);
     });
-    
+
     // Add empty cells for days before month starts
     for (let i = 0; i < firstDay; i++) {
         const emptyDay = document.createElement('div');
         emptyDay.className = 'calendar-day other-month';
         calendarGrid.appendChild(emptyDay);
     }
-    
+
     // Add days of the month
     const today = new Date();
     for (let day = 1; day <= daysInMonth; day++) {
         const dayElement = document.createElement('div');
         dayElement.className = 'calendar-day';
         dayElement.textContent = day;
-        
-        if (currentYear === today.getFullYear() && 
-            currentMonth === today.getMonth() && 
+
+        if (currentYear === today.getFullYear() &&
+            currentMonth === today.getMonth() &&
             day === today.getDate()) {
             dayElement.classList.add('today');
         }
-        
+
         // Add mock events
         if (day === 15 || day === 20) {
             dayElement.classList.add('has-event');
         }
-        
+
         calendarGrid.appendChild(dayElement);
     }
 }
@@ -411,9 +463,9 @@ function setupFormHandlers() {
     // Notice form handler
     const noticeForm = document.getElementById('noticeForm');
     if (noticeForm) {
-        noticeForm.addEventListener('submit', function(e) {
+        noticeForm.addEventListener('submit', function (e) {
             e.preventDefault();
-            
+
             const noticeData = {
                 title: document.getElementById('noticeTitle').value,
                 notice_type: document.getElementById('noticeType').value,
@@ -422,7 +474,7 @@ function setupFormHandlers() {
                 content: document.getElementById('noticeContent').value,
                 expiry_date: document.getElementById('expiryDate').value
             };
-            
+
             fetch('/api/notices/publish', {
                 method: 'POST',
                 headers: {
@@ -430,29 +482,29 @@ function setupFormHandlers() {
                 },
                 body: JSON.stringify(noticeData)
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showSuccessModal('Notice Published', 'Notice has been published successfully and notifications sent to target audience.');
-                    noticeForm.reset();
-                    loadPublishedNotices();
-                } else {
-                    showErrorModal('Error', data.message || 'Failed to publish notice');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showErrorModal('Error', 'An error occurred while publishing the notice');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showSuccessModal('Notice Published', 'Notice has been published successfully and notifications sent to target audience.');
+                        noticeForm.reset();
+                        loadPublishedNotices();
+                    } else {
+                        showErrorModal('Error', data.message || 'Failed to publish notice');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showErrorModal('Error', 'An error occurred while publishing the notice');
+                });
         });
     }
-    
+
     // Target audience change handler
     const targetAudience = document.getElementById('targetAudience');
     const departmentGroup = document.getElementById('departmentGroup');
-    
+
     if (targetAudience && departmentGroup) {
-        targetAudience.addEventListener('change', function() {
+        targetAudience.addEventListener('change', function () {
             if (this.value === 'department') {
                 departmentGroup.style.display = 'block';
             } else {
@@ -478,15 +530,15 @@ function loadPublishedNotices() {
 function updatePublishedNoticesDisplay(notices) {
     const container = document.querySelector('.notices-list');
     if (!container) return;
-    
+
     container.innerHTML = '';
-    
+
     notices.forEach(notice => {
         const noticeItem = document.createElement('div');
         noticeItem.className = 'notice-item';
-        
+
         const createdDate = new Date(notice.created_at).toLocaleDateString();
-        
+
         noticeItem.innerHTML = `
             <div class="notice-header">
                 <h4>${notice.title}</h4>
@@ -501,7 +553,7 @@ function updatePublishedNoticesDisplay(notices) {
                 </div>
             </div>
         `;
-        
+
         container.appendChild(noticeItem);
     });
 }
@@ -519,19 +571,19 @@ function showErrorModal(title, message) {
 // Show confirmation modal
 function showConfirmModal(title, message, onConfirm) {
     const modal = createModal(title, message, 'confirm');
-    
+
     const confirmBtn = modal.querySelector('.confirm-btn');
     const cancelBtn = modal.querySelector('.cancel-btn');
-    
-    confirmBtn.onclick = function() {
+
+    confirmBtn.onclick = function () {
         onConfirm();
         closeModal(modal);
     };
-    
-    cancelBtn.onclick = function() {
+
+    cancelBtn.onclick = function () {
         closeModal(modal);
     };
-    
+
     document.body.appendChild(modal);
     modal.style.display = 'block';
 }
@@ -541,7 +593,7 @@ function showModal(title, message, type = 'info') {
     const modal = createModal(title, message, type);
     document.body.appendChild(modal);
     modal.style.display = 'block';
-    
+
     // Auto close after 3 seconds for success/error
     if (type === 'success' || type === 'error') {
         setTimeout(() => {
@@ -554,21 +606,21 @@ function showModal(title, message, type = 'info') {
 function createModal(title, message, type) {
     const modal = document.createElement('div');
     modal.className = 'modal admin-modal';
-    
+
     const iconClass = {
         'success': 'fas fa-check-circle',
         'error': 'fas fa-exclamation-circle',
         'confirm': 'fas fa-question-circle',
         'info': 'fas fa-info-circle'
     }[type] || 'fas fa-info-circle';
-    
+
     const iconColor = {
         'success': '#27ae60',
         'error': '#e74c3c',
         'confirm': '#f39c12',
         'info': '#667eea'
     }[type] || '#667eea';
-    
+
     modal.innerHTML = `
         <div class="modal-content admin-modal-content">
             <div class="modal-header">
@@ -579,14 +631,14 @@ function createModal(title, message, type) {
                 <p>${message}</p>
             </div>
             <div class="modal-footer">
-                ${type === 'confirm' ? 
-                    '<button class="confirm-btn">Confirm</button><button class="cancel-btn">Cancel</button>' :
-                    '<button class="ok-btn" onclick="closeModal(this.closest(\'.modal\'))">OK</button>'
-                }
+                ${type === 'confirm' ?
+            '<button class="confirm-btn">Confirm</button><button class="cancel-btn">Cancel</button>' :
+            '<button class="ok-btn" onclick="closeModal(this.closest(\'.modal\'))">OK</button>'
+        }
             </div>
         </div>
     `;
-    
+
     return modal;
 }
 
@@ -617,7 +669,7 @@ function deleteStudent(rollNo) {
     showConfirmModal(
         'Delete Student',
         `Are you sure you want to delete student ${rollNo}? This action cannot be undone.`,
-        function() {
+        function () {
             // Perform deletion
             showSuccessModal('Student Deleted', `Student ${rollNo} has been successfully deleted from the system.`);
         }
@@ -668,7 +720,7 @@ function deleteAssignment(index) {
     showConfirmModal(
         'Delete Assignment',
         `Are you sure you want to delete assignment ${index}?`,
-        function() {
+        function () {
             showSuccessModal('Assignment Deleted', `Assignment ${index} has been successfully removed.`);
         }
     );
@@ -691,23 +743,23 @@ function deleteNotice(noticeId) {
     showConfirmModal(
         'Delete Notice',
         'Are you sure you want to delete this notice? This will also remove all related notifications.',
-        function() {
+        function () {
             fetch(`/api/notices/delete/${noticeId}`, {
                 method: 'DELETE'
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showSuccessModal('Notice Deleted', 'Notice has been successfully deleted.');
-                    loadPublishedNotices();
-                } else {
-                    showErrorModal('Error', 'Failed to delete notice.');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showErrorModal('Error', 'An error occurred while deleting the notice.');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showSuccessModal('Notice Deleted', 'Notice has been successfully deleted.');
+                        loadPublishedNotices();
+                    } else {
+                        showErrorModal('Error', 'Failed to delete notice.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showErrorModal('Error', 'An error occurred while deleting the notice.');
+                });
         }
     );
 }
@@ -722,7 +774,7 @@ function editFeeStructure(index) {
 
 function generateReport(reportType) {
     showModal('Generating Report', `${reportType} report is being generated. You will be notified when it's ready for download.`, 'success');
-    
+
     // Simulate report generation
     setTimeout(() => {
         showSuccessModal('Report Ready', `${reportType} report has been generated successfully and is ready for download.`);
@@ -742,7 +794,7 @@ function toggleMobileMenu() {
 }
 
 // Add mobile menu button for responsive design
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     if (window.innerWidth <= 768) {
         const header = document.querySelector('.header-left');
         const menuBtn = document.createElement('button');

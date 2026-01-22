@@ -43,6 +43,9 @@
                 <li><a href="#schedule" class="menu-item" onclick="showSection('schedule')">
                         <i class="fas fa-clock"></i> Today's Schedule
                     </a></li>
+                <li><a href="#timetable" class="menu-item" onclick="showSection('timetable')">
+                        <i class="fas fa-calendar-alt"></i> My Timetable
+                    </a></li>
             </ul>
             <div class="sidebar-footer">
                 <button onclick="logout()" class="logout-btn">
@@ -55,7 +58,8 @@
         <main class="main-content">
             <!-- Header -->
             <header class="header">
-                <div class="header-left">
+                <div class="header-left" style="display: flex; align-items: center;">
+                    <i class="fas fa-bars menu-toggle" onclick="toggleSidebar()"></i>
                     <h1 id="pageTitle">Faculty Dashboard</h1>
                 </div>
                 <div class="header-right">
@@ -472,6 +476,75 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Full Timetable Section -->
+            <section id="timetable" class="content-section">
+                <div class="section-header">
+                    <h2>My Weekly Timetable</h2>
+                </div>
+
+                <div class="timetable-container">
+                    <div class="table-responsive">
+                        <table class="table table-bordered text-center align-middle" id="faculty-timetable-grid">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th style="width: 10%">Day / Time</th>
+                                    <th>09:00 - 10:00</th>
+                                    <th>10:00 - 11:00</th>
+                                    <th>11:30 - 12:30</th>
+                                    <th>12:30 - 01:30</th>
+                                    <th>02:15 - 03:15</th>
+                                    <th>03:15 - 04:15</th>
+                                </tr>
+                            </thead>
+                            <tbody id="faculty-timetable-body">
+                                <!-- Timetable rows will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Lecture Swap Modal -->
+            <div id="swapModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeSwapModal()">&times;</span>
+                    <h3>Manage Lecture</h3>
+                    <p id="swapSlotDetails" class="mb-3"></p>
+
+                    <form id="swapForm" onsubmit="event.preventDefault(); submitSwapRequest();">
+                        <input type="hidden" id="swapTimetableId">
+
+                        <div class="form-group">
+                            <label for="swapType">Change Type:</label>
+                            <select id="swapType" onchange="toggleSwapFields()" required>
+                                <option value="temporary">Temporary (Reschedule)</option>
+                                <option value="permanent">Permanent Upgrade</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="dateGroup">
+                            <label for="swapDate">Date of Change:</label>
+                            <input type="date" id="swapDate" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newFacultyId">Assign To (Faculty ID):</label>
+                            <!-- Ideally a dropdown of available faculty, but for now ID input or hardcoded mock list -->
+                            <input type="number" id="newFacultyId" placeholder="Enter Faculty ID" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="swapReason">Reason:</label>
+                            <textarea id="swapReason" rows="2"
+                                placeholder="e.g. Personal Leave, Syllabus Adjustment"></textarea>
+                        </div>
+
+                        <button type="submit" class="submit-btn" style="width: 100%;">Submit Request</button>
+                    </form>
+                </div>
+            </div>
+
         </main>
     </div>
 
