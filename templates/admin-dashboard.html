@@ -49,6 +49,12 @@
                 <li><a href="#reports" class="menu-item" onclick="showSection('reports')">
                         <i class="fas fa-chart-bar"></i> Reports
                     </a></li>
+<<<<<<< HEAD
+=======
+                <li><a href="#exams" class="menu-item" onclick="showSection('exams')">
+                        <i class="fas fa-file-alt"></i> Examination Management
+                    </a></li>
+>>>>>>> 9b29b48c3aabeb646d18063d7e5dfc0794c9d7a0
             </ul>
             <div class="sidebar-footer">
                 <button onclick="logout()" class="logout-btn">
@@ -242,6 +248,7 @@
                 </div>
 
                 <div class="faculty-grid">
+<<<<<<< HEAD
                     <div class="faculty-card">
                         <div class="faculty-avatar">
                             <img src="https://via.placeholder.com/80" alt="Faculty">
@@ -273,6 +280,9 @@
                             <button onclick="viewFacultyDetails('FAC002')">View Details</button>
                         </div>
                     </div>
+=======
+                    <!-- Faculty cards will be loaded dynamically -->
+>>>>>>> 9b29b48c3aabeb646d18063d7e5dfc0794c9d7a0
                 </div>
             </section>
 
@@ -568,6 +578,184 @@
                         <p>Teaching load and performance metrics</p>
                         <button onclick="generateReport('faculty-performance')">Generate Report</button>
                     </div>
+                </div>
+            </section>
+            <!-- Examination Management Section -->
+            <section id="exams" class="content-section">
+                <div class="section-header">
+                    <h2>Examination Management</h2>
+                </div>
+
+                <div class="exam-tabs-container"
+                    style="margin-bottom: 2rem; background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <div class="exam-tabs"
+                        style="display: flex; gap: 1rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">
+                        <button class="tab-btn active" onclick="switchExamTab('create-schedule')"
+                            style="padding: 0.5rem 1rem; border: none; background: none; cursor: pointer; font-weight: 600; color: #2563eb; border-bottom: 2px solid #2563eb;">Create
+                            Schedule</button>
+                        <button class="tab-btn" onclick="switchExamTab('timetable')"
+                            style="padding: 0.5rem 1rem; border: none; background: none; cursor: pointer; font-weight: 500; color: #64748b;">Timetable</button>
+                        <button class="tab-btn" onclick="switchExamTab('re-candidates')"
+                            style="padding: 0.5rem 1rem; border: none; background: none; cursor: pointer; font-weight: 500; color: #64748b;">Re-candidates</button>
+                        <button class="tab-btn" onclick="switchExamTab('results')"
+                            style="padding: 0.5rem 1rem; border: none; background: none; cursor: pointer; font-weight: 500; color: #64748b;">Results</button>
+                    </div>
+                </div>
+
+                <!-- 1. Create Schedule -->
+                <div id="create-schedule" class="exam-tab-content active"
+                    style="background: white; padding: 2rem; border-radius: 8px;">
+                    <h3>Create New Exam Schedule</h3>
+                    <form id="createScheduleForm" style="max-width: 600px; margin-top: 1.5rem;">
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label style="display: block; margin-bottom: 0.5rem;">Exam Name</label>
+                            <input type="text" name="name" class="form-input"
+                                style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;"
+                                placeholder="e.g. Winter Semester 2026" required>
+                        </div>
+                        <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                            <div class="form-group" style="flex: 1;">
+                                <label style="display: block; margin-bottom: 0.5rem;">Academic Year</label>
+                                <input type="text" name="academic_year" class="form-input"
+                                    style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;"
+                                    value="2025-26" required>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label style="display: block; margin-bottom: 0.5rem;">Semester</label>
+                                <input type="text" name="semester_type" class="form-input"
+                                    style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;"
+                                    placeholder="e.g. 5" required>
+                            </div>
+                        </div>
+                        <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                            <div class="form-group" style="flex: 1;">
+                                <label style="display: block; margin-bottom: 0.5rem;">Start Date</label>
+                                <input type="date" name="start_date" class="form-input"
+                                    style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;"
+                                    required>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label style="display: block; margin-bottom: 0.5rem;">End Date</label>
+                                <input type="date" name="end_date" class="form-input"
+                                    style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;"
+                                    required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn"
+                            style="background: #2563eb; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 4px; cursor: pointer;">Create
+                            Schedule</button>
+                    </form>
+                    <div id="scheduleResult" style="margin-top: 1rem;"></div>
+                </div>
+
+                <!-- 2. Timetable -->
+                <div id="timetable" class="exam-tab-content"
+                    style="display: none; background: white; padding: 2rem; border-radius: 8px;">
+                    <h3>Manage Timetable</h3>
+                    <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem;">
+                        <input type="number" id="timetableScheduleId" placeholder="Enter Schedule ID"
+                            style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                        <button onclick="loadTimetable()" class="btn"
+                            style="background: #2563eb; color: white; padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer;">Load</button>
+                    </div>
+
+                    <div id="timetableWrapper" style="display: none;">
+                        <h4 style="margin-bottom: 1rem;">Add Entry</h4>
+                        <form id="timetableForm"
+                            style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem;">
+                            <!-- Subject Dropdown -->
+                            <select name="subject_id" id="timetableSubject" required
+                                style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                                <option value="">Select Subject</option>
+                            </select>
+                            <input type="date" name="exam_date" required
+                                style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                            <input type="text" name="room_number" placeholder="Room No" required
+                                style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                            <input type="time" name="start_time" required
+                                style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                            <input type="time" name="end_time" required
+                                style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                            <input type="number" name="faculty_id" placeholder="Faculty/Invigilator ID" required
+                                style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                            <button type="submit"
+                                style="grid-column: span 3; background: #10b981; color: white; padding: 0.75rem; border: none; border-radius: 4px; cursor: pointer;">Add
+                                to Timetable</button>
+                        </form>
+
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h4>Entries</h4>
+                            <button onclick="publishSchedule()"
+                                style="background: #8b5cf6; color: white; padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer;">Publish
+                                & Notify</button>
+                        </div>
+                        <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f8fafc;">
+                                    <th style="padding: 0.75rem; text-align: left; border-bottom: 1px solid #ddd;">
+                                        Subject</th>
+                                    <th style="padding: 0.75rem; text-align: left; border-bottom: 1px solid #ddd;">Date
+                                        & Time</th>
+                                    <th style="padding: 0.75rem; text-align: left; border-bottom: 1px solid #ddd;">Room
+                                    </th>
+                                    <th style="padding: 0.75rem; text-align: left; border-bottom: 1px solid #ddd;">
+                                        Invigilator</th>
+                                </tr>
+                            </thead>
+                            <tbody id="timetableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 3. Re-candidates -->
+                <div id="re-candidates" class="exam-tab-content"
+                    style="display: none; background: white; padding: 2rem; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem;">
+                        <h3>Re-candidate List (Failed/Absent)</h3>
+                        <button onclick="loadReCandidates()"
+                            style="background: #2563eb; color: white; padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer;">Refresh
+                            List</button>
+                    </div>
+                    <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th style="padding: 0.75rem; text-align: left; border-bottom: 1px solid #ddd;">Student
+                                </th>
+                                <th style="padding: 0.75rem; text-align: left; border-bottom: 1px solid #ddd;">Roll No
+                                </th>
+                                <th style="padding: 0.75rem; text-align: left; border-bottom: 1px solid #ddd;">Subject
+                                </th>
+                                <th style="padding: 0.75rem; text-align: left; border-bottom: 1px solid #ddd;">Marks
+                                </th>
+                                <th style="padding: 0.75rem; text-align: left; border-bottom: 1px solid #ddd;">Status
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="reCandidatesBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- 4. Results -->
+                <div id="results" class="exam-tab-content"
+                    style="display: none; background: white; padding: 2rem; border-radius: 8px;">
+                    <h3>Export Results</h3>
+                    <p style="margin-bottom: 1.5rem; color: #64748b;">Download semester results in Excel format.</p>
+                    <form onsubmit="exportResults(event)"
+                        style="max-width: 400px; display: flex; flex-direction: column; gap: 1rem;">
+                        <select name="department" class="form-input"
+                            style="padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px;">
+                            <option value="">All Departments</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Electronics">Electronics</option>
+                        </select>
+                        <input type="text" name="semester" placeholder="Semester (Optional)"
+                            style="padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px;">
+                        <button type="submit"
+                            style="background: #059669; color: white; padding: 0.75rem; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            <i class="fas fa-file-excel"></i> Download Excel
+                        </button>
+                    </form>
                 </div>
             </section>
         </main>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examination Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <style>
+        .exam-container {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .exam-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .exam-tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            font-weight: 500;
+            color: #64748b;
+        }
+        .exam-tab.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+        }
+        .exam-section {
+            display: none;
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .exam-section.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+        }
+        .btn-primary {
+            background-color: #2563eb;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            border: none;
+            cursor: pointer;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .table th, .table td {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <nav class="navbar">
+        <div class="nav-brand">EduPortal Admin</div>
+        <div class="nav-links">
+            <a href="/admin-dashboard">Dashboard</a>
+            <a href="#" class="active">Exams</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </nav>
+
+    <div class="exam-container">
+        <h1>Examination Management</h1>
+        
+        <div class="exam-tabs">
+            <div class="exam-tab active" data-tab="create-schedule">Create Schedule</div>
+            <div class="exam-tab" data-tab="timetable">Timetable & Faculty</div>
+            <div class="exam-tab" data-tab="re-candidates">Re-candidates</div>
+            <div class="exam-tab" data-tab="results">Results</div>
+        </div>
+
+        <!-- 1. Create Schedule -->
+        <div id="create-schedule" class="exam-section active">
+            <h2>Create New Exam Schedule</h2>
+            <form id="createScheduleForm">
+                <div class="form-group">
+                    <label class="form-label">Exam Name (e.g. Winter 2026)</label>
+                    <input type="text" name="name" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Academic Year</label>
+                    <input type="text" name="academic_year" class="form-input" value="2025-26" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Semester (e.g. 5 or Odd)</label>
+                    <input type="text" name="semester_type" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" name="start_date" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">End Date</label>
+                    <input type="date" name="end_date" class="form-input" required>
+                </div>
+                <button type="submit" class="btn-primary">Create Schedule</button>
+            </form>
+            <div id="scheduleResult" style="margin-top: 1rem;"></div>
+        </div>
+
+        <!-- 2. Timetable & Faculty -->
+        <div id="timetable" class="exam-section">
+            <h2>Manage Timetable & Assign Faculty</h2>
+            
+            <div class="form-group">
+                <label class="form-label">Select Exam Schedule ID</label>
+                <input type="number" id="timetableScheduleId" class="form-input" placeholder="Enter Schedule ID created in previous step">
+                <button onclick="loadTimetable()" class="btn-primary" style="margin-top: 0.5rem;">Load Timetable</button>
+            </div>
+
+            <div id="timetableContainer" style="display:none;">
+                <h3>Add New Entry</h3>
+                <form id="timetableForm">
+                    <div class="form-group">
+                        <label class="form-label">Subject ID</label>
+                        <input type="number" name="subject_id" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Exam Date</label>
+                        <input type="date" name="exam_date" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <div style="display:flex; gap:1rem;">
+                            <div style="flex:1;">
+                                <label class="form-label">Start Time</label>
+                                <input type="time" name="start_time" class="form-input" required>
+                            </div>
+                            <div style="flex:1;">
+                                <label class="form-label">End Time</label>
+                                <input type="time" name="end_time" class="form-input" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Room Number</label>
+                        <input type="text" name="room_number" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Faculty ID (Invigilator)</label>
+                        <input type="number" name="faculty_id" class="form-input" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Add Entry</button>
+                </form>
+
+                <hr style="margin: 2rem 0;">
+
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>Current Entries</h3>
+                    <button onclick="publishSchedule()" class="btn-primary" style="background-color: #059669;">Publish & Share (Notify All)</button>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Subject</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Room</th>
+                            <th>Faculty</th>
+                        </tr>
+                    </thead>
+                    <tbody id="timetableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 3. Re-candidates -->
+        <div id="re-candidates" class="exam-section">
+            <h2>Re-candidate List</h2>
+            <p>Students who failed (< 40%) or were absent.</p>
+            <button onclick="loadReCandidates()" class="btn-primary">Refresh List</button>
+            
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Roll No</th>
+                        <th>Student Name</th>
+                        <th>Subject</th>
+                        <th>Marks</th>
+                        <th>Max</th>
+                        <th>%</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="reCandidatesBody"></tbody>
+            </table>
+        </div>
+
+        <!-- 4. Results -->
+        <div id="results" class="exam-section">
+            <h2>Export Results</h2>
+            <form onsubmit="exportResults(event)" style="max-width: 400px;">
+                <div class="form-group">
+                    <label class="form-label">Department</label>
+                    <select name="department" class="form-input">
+                        <option value="">All Departments</option>
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Electrical Engineering">Electrical Engineering</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Semester</label>
+                    <input type="number" name="semester" class="form-input" placeholder="Optional">
+                </div>
+                <button type="submit" class="btn-primary">Download Excel (CSV)</button>
+            </form>
+        </div>
+
+    </div>
+
+    <script>
+        // Tab Switching
+        document.querySelectorAll('.exam-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.exam-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.exam-section').forEach(s => s.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Forms and Logic
+        const API_BASE = '/api/admin/exams';
+
+        document.getElementById('createScheduleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            try {
+                const res = await fetch(`${API_BASE}/schedule`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if(result.success) {
+                    document.getElementById('scheduleResult').innerHTML = `<div style="color:green">Success! Schedule ID: ${result.id}</div>`;
+                    document.getElementById('timetableScheduleId').value = result.id;
+                } else {
+                    document.getElementById('scheduleResult').innerHTML = `<div style="color:red">Error: ${result.error}</div>`;
+                }
+            } catch(err) {
+                alert(err);
+            }
+        });
+
+        async function loadTimetable() {
+            const id = document.getElementById('timetableScheduleId').value;
+            if(!id) return alert('Enter Schedule ID first');
+            
+            document.getElementById('timetableContainer').style.display = 'block';
+            
+            const res = await fetch(`${API_BASE}/timetable/${id}`);
+            const data = await res.json();
+            
+            const tbody = document.getElementById('timetableBody');
+            tbody.innerHTML = data.map(row => `
+                <tr>
+                    <td>${row.id}</td>
+                    <td>${row.subject_name} (${row.subject_code})</td>
+                    <td>${row.exam_date}</td>
+                    <td>${row.start_time} - ${row.end_time}</td>
+                    <td>${row.room_number}</td>
+                    <td>${row.faculty_name}</td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('timetableForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            const scheduleId = document.getElementById('timetableScheduleId').value;
+            
+            data.exam_schedule_id = scheduleId;
+            
+            try {
+                const res = await fetch(`${API_BASE}/timetable`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if(result.success) {
+                    alert('Entry Added!');
+                    loadTimetable();
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch(err) {
+                alert(err);
+            }
+        });
+
+        async function publishSchedule() {
+            const id = document.getElementById('timetableScheduleId').value;
+            if(confirm('Are you sure you want to publish this schedule? Notifications will be sent to all students and assigned faculty.')) {
+                const res = await fetch(`${API_BASE}/publish/${id}`, { method: 'POST' });
+                const result = await res.json();
+                alert(result.success ? "Published successfully!" : "Error: " + result.error);
+            }
+        }
+
+        async function loadReCandidates() {
+            const res = await fetch(`${API_BASE}/re-candidates`);
+            const data = await res.json();
+            
+            const tbody = document.getElementById('reCandidatesBody');
+            tbody.innerHTML = data.map(row => `
+                <tr>
+                    <td>${row.roll_number}</td>
+                    <td>${row.student_name}</td>
+                    <td>${row.subject_name}</td>
+                    <td>${row.marks_obtained}</td>
+                    <td>${row.max_marks}</td>
+                    <td>${row.percentage}%</td>
+                    <td style="color:red; font-weight:bold">${row.status}</td>
+                </tr>
+            `).join('');
+        }
+        
+        function exportResults(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const dept = formData.get('department');
+            const sem = formData.get('semester');
+            
+            let url = `${API_BASE}/results/export?`;
+            if(dept) url += `department=${encodeURIComponent(dept)}&`;
+            if(sem) url += `semester=${encodeURIComponent(sem)}`;
+            
+            window.location.href = url;
+        }
+    </script>
+</body>
+</html>

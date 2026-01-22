@@ -46,6 +46,7 @@ function toggleSidebar() {
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function () {
+<<<<<<< HEAD
     // Add event listener to close sidebar when a menu item is clicked on mobile
     const menuLinks = document.querySelectorAll('.sidebar-menu a');
     menuLinks.forEach(link => {
@@ -59,6 +60,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+=======
+>>>>>>> 9b29b48c3aabeb646d18063d7e5dfc0794c9d7a0
     // Load user data from localStorage
     const userData = localStorage.getItem('userData');
     if (userData) {
@@ -124,7 +127,8 @@ function showSection(sectionId) {
         'calendar': 'Academic Calendar',
         'notices': 'Publish Notices',
         'fees': 'Fee Management',
-        'reports': 'Reports & Analytics'
+        'reports': 'Reports & Analytics',
+        'exams': 'Examination Management'
     };
 
     document.getElementById('pageTitle').textContent = titles[sectionId] || 'Admin Dashboard';
@@ -296,9 +300,42 @@ function filterStudents() {
 }
 
 // Load faculty data
+// Load faculty data
 function loadFacultyData() {
-    // Mock implementation - faculty cards are already in HTML
-    console.log('Faculty data loaded');
+    fetch('/api/admin/faculty')
+        .then(response => response.json())
+        .then(data => {
+            const grid = document.querySelector('.faculty-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            data.forEach(faculty => {
+                const card = document.createElement('div');
+                card.className = 'faculty-card';
+                card.innerHTML = `
+                    <div class="faculty-avatar">
+                        <img src="${faculty.photo_url}" alt="Faculty">
+                    </div>
+                    <div class="faculty-info">
+                        <h4>${faculty.full_name}</h4>
+                        <p>${faculty.department}</p>
+                        <p>${faculty.designation}</p>
+                        <span class="experience">${faculty.experience_years} years experience</span>
+                        <div class="faculty-assignments" style="margin-top: 8px; font-size: 0.85em; color: #666;">
+                            <div><i class="fas fa-chalkboard"></i> ${faculty.assigned_classes || 'No classes'}</div>
+                            <div><i class="fas fa-layer-group"></i> ${faculty.assigned_semesters || 'No semester'}</div>
+                            <div><i class="fas fa-book"></i> ${faculty.assigned_subjects || 'No subjects'}</div>
+                        </div>
+                    </div>
+                    <div class="faculty-actions">
+                        <button onclick="editFaculty(${faculty.id})">Edit</button>
+                        <button onclick="viewFacultyDetails(${faculty.id})">View Details</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        })
+        .catch(error => console.error('Error loading faculty:', error));
 }
 
 // Load courses data
@@ -623,12 +660,13 @@ function createModal(title, message, type) {
 
     modal.innerHTML = `
         <div class="modal-content admin-modal-content">
-            <div class="modal-header">
+            <div class="modal-header" style="position: relative;">
+                <span class="close-modal" onclick="closeModal(this.closest('.modal'))" style="position: absolute; right: 0; top: 0; font-size: 1.5rem; cursor: pointer;">&times;</span>
                 <i class="${iconClass}" style="color: ${iconColor}; font-size: 2rem; margin-bottom: 1rem;"></i>
                 <h3>${title}</h3>
             </div>
             <div class="modal-body">
-                <p>${message}</p>
+                ${message}
             </div>
             <div class="modal-footer">
                 ${type === 'confirm' ?
@@ -681,15 +719,256 @@ function importStudents() {
 }
 
 function addFaculty() {
-    showModal('Add Faculty', 'Faculty registration form would include personal details, qualifications, and subject expertise.', 'info');
+    const formHtml = `
+        <form id="addFacultyForm" class="add-form">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="addName" required placeholder="Dr. Jane Doe">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="addEmail" required placeholder="jane.doe@college.edu">
+            </div>
+            <div class="form-group">
+                <label>Department</label>
+                <select id="addDept" required>
+                     <option value="" disabled selected>Select Department</option>
+                     <option value="Computer Science">Computer Science</option>
+                     <option value="Electronics">Electronics</option>
+                     <option value="Mechanical">Mechanical</option>
+                     <option value="Civil">Civil</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Designation</label>
+                <input type="text" id="addDesignation" required placeholder="Assistant Professor">
+            </div>
+             <div class="form-group">
+                <label>Specialization</label>
+                <input type="text" id="addSpecialization" placeholder="e.g. AI/ML">
+            </div>
+            <div class="form-group">
+                <label>Experience (Years)</label>
+                <input type="number" id="addExp" min="0" value="0">
+            </div>
+            <div class="form-group">
+                <label>Assigned Classes/Divisions</label>
+                <input type="text" id="addClasses" placeholder="e.g. CSE-A, ECE-B">
+            </div>
+            <div class="form-group">
+                <label>Assigned Semesters</label>
+                <input type="text" id="addSemesters" placeholder="e.g. 1st, 3rd, 5th">
+            </div>
+            <div class="form-group">
+                <label>Assigned Subjects</label>
+                <input type="text" id="addSubjects" placeholder="e.g. Data Structures, OS">
+            </div>
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button type="submit" class="save-btn" style="background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%;">Add Faculty</button>
+            </div>
+        </form>
+    `;
+
+    showModal('Add New Faculty', formHtml, 'info');
+
+    setTimeout(() => {
+        const form = document.getElementById('addFacultyForm');
+        if (form) {
+            form.onsubmit = (e) => {
+                e.preventDefault();
+                const facultyData = {
+                    full_name: document.getElementById('addName').value,
+                    email: document.getElementById('addEmail').value,
+                    department: document.getElementById('addDept').value,
+                    designation: document.getElementById('addDesignation').value,
+                    specialization: document.getElementById('addSpecialization').value,
+                    experience_years: document.getElementById('addExp').value,
+                    assigned_classes: document.getElementById('addClasses').value,
+                    assigned_semesters: document.getElementById('addSemesters').value,
+                    assigned_subjects: document.getElementById('addSubjects').value
+                };
+
+                fetch('/api/admin/faculty', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(facultyData)
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            showSuccessModal('Success', 'Faculty added successfully');
+                            loadFacultyData();
+                            closeModal(form.closest('.modal'));
+                        } else {
+                            showErrorModal('Error', data.error || 'Failed to add faculty');
+                        }
+                    })
+                    .catch(err => showErrorModal('Error', 'Failed to add faculty'));
+            };
+        }
+    }, 100);
 }
 
-function editFaculty(facultyId) {
-    showModal('Edit Faculty', `Edit form for faculty ${facultyId} with current information pre-loaded.`, 'info');
+function editFaculty(id) {
+    fetch(`/api/admin/faculty/${id}`)
+        .then(res => res.json())
+        .then(faculty => {
+            const formHtml = `
+                <form id="editFacultyForm" class="edit-form">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="editName" value="${faculty.full_name}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="editEmail" value="${faculty.email}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Department</label>
+                        <select id="editDept" required>
+                             <option value="Computer Science" ${faculty.department === 'Computer Science' ? 'selected' : ''}>Computer Science</option>
+                             <option value="Electronics" ${faculty.department === 'Electronics' ? 'selected' : ''}>Electronics</option>
+                             <option value="Mechanical" ${faculty.department === 'Mechanical' ? 'selected' : ''}>Mechanical</option>
+                             <option value="Civil" ${faculty.department === 'Civil' ? 'selected' : ''}>Civil</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Designation</label>
+                        <input type="text" id="editDesignation" value="${faculty.designation}" required>
+                    </div>
+                     <div class="form-group">
+                        <label>Specialization</label>
+                        <input type="text" id="editSpecialization" value="${faculty.specialization}">
+                    </div>
+                    <div class="form-group">
+                        <label>Experience (Years)</label>
+                        <input type="number" id="editExp" value="${faculty.experience_years}">
+                    </div>
+                    <div class="form-group">
+                        <label>Assigned Classes/Divisions</label>
+                        <input type="text" id="editClasses" value="${faculty.assigned_classes || ''}" placeholder="e.g. CSE-A, ECE-B">
+                    </div>
+                    <div class="form-group">
+                        <label>Assigned Semesters</label>
+                        <input type="text" id="editSemesters" value="${faculty.assigned_semesters || ''}" placeholder="e.g. 1st, 3rd">
+                    </div>
+                    <div class="form-group">
+                        <label>Assigned Subjects</label>
+                        <input type="text" id="editSubjects" value="${faculty.assigned_subjects || ''}" placeholder="e.g. Data Structures">
+                    </div>
+                    <div class="modal-actions" style="margin-top: 20px; display: flex; justify-content: space-between;">
+                        <button type="submit" class="save-btn" style="background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Save Changes</button>
+                        <button type="button" onclick="deleteFaculty(${id})" class="delete-btn" style="background: #f44336; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Delete Faculty</button>
+                    </div>
+                </form>
+            `;
+
+            showModal('Edit Faculty', formHtml, 'info');
+
+            // Allow time for modal to render before attaching listener
+            setTimeout(() => {
+                const form = document.getElementById('editFacultyForm');
+                if (form) {
+                    form.onsubmit = (e) => {
+                        e.preventDefault();
+                        const updatedData = {
+                            full_name: document.getElementById('editName').value,
+                            email: document.getElementById('editEmail').value,
+                            department: document.getElementById('editDept').value,
+                            designation: document.getElementById('editDesignation').value,
+                            specialization: document.getElementById('editSpecialization').value,
+                            experience_years: document.getElementById('editExp').value,
+                            assigned_classes: document.getElementById('editClasses').value,
+                            assigned_semesters: document.getElementById('editSemesters').value,
+                            assigned_subjects: document.getElementById('editSubjects').value
+                        };
+
+                        fetch(`/api/admin/faculty/${id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(updatedData)
+                        })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    showSuccessModal('Success', 'Faculty details updated');
+                                    loadFacultyData(); // Refresh list
+                                    // Close modal by finding the closest modal parent of the form
+                                    closeModal(form.closest('.modal'));
+                                } else {
+                                    showErrorModal('Error', data.error || 'Update failed');
+                                }
+                            })
+                            .catch(err => showErrorModal('Error', 'Failed to update faculty'));
+                    };
+                }
+            }, 100);
+        })
+        .catch(err => showErrorModal('Error', 'Failed to load faculty details'));
 }
 
-function viewFacultyDetails(facultyId) {
-    showModal('Faculty Details', `Comprehensive view of faculty ${facultyId} including teaching assignments and performance.`, 'info');
+function viewFacultyDetails(id) {
+    fetch(`/api/admin/faculty/${id}`)
+        .then(res => res.json())
+        .then(faculty => {
+            const detailsHtml = `
+                <div class="faculty-details">
+                    <div class="detail-row" style="margin-bottom: 10px;">
+                        <strong>ID:</strong> ${faculty.faculty_id}
+                    </div>
+                    <div class="detail-row" style="margin-bottom: 10px;">
+                        <strong>Name:</strong> ${faculty.full_name}
+                    </div>
+                    <div class="detail-row" style="margin-bottom: 10px;">
+                        <strong>Email:</strong> ${faculty.email}
+                    </div>
+                    <div class="detail-row" style="margin-bottom: 10px;">
+                        <strong>Department:</strong> ${faculty.department}
+                    </div>
+                    <div class="detail-row" style="margin-bottom: 10px;">
+                        <strong>Designation:</strong> ${faculty.designation}
+                    </div>
+                    <div class="detail-row" style="margin-bottom: 10px;">
+                        <strong>Specialization:</strong> ${faculty.specialization}
+                    </div>
+                    <div class="detail-row" style="margin-bottom: 10px;">
+                        <strong>Experience:</strong> ${faculty.experience_years} years
+                    </div>
+                    <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
+                    <div class="detail-row" style="margin-bottom: 10px;">
+                        <strong>Classes/Divisions:</strong> ${faculty.assigned_classes || 'N/A'}
+                    </div>
+                    <div class="detail-row" style="margin-bottom: 10px;">
+                        <strong>Semesters:</strong> ${faculty.assigned_semesters || 'N/A'}
+                    </div>
+                    <div class="detail-row" style="margin-bottom: 10px;">
+                        <strong>Subjects:</strong> ${faculty.assigned_subjects || 'N/A'}
+                    </div>
+                </div>
+            `;
+            showModal('Faculty Details', detailsHtml, 'info');
+        })
+        .catch(err => showErrorModal('Error', 'Failed to load faculty details'));
+}
+
+function deleteFaculty(id) {
+    // Determine the modal to close (the edit modal)
+    const editModal = document.querySelector('.modal[style*="block"]'); // rudimentary check
+
+    showConfirmModal('Delete Faculty', 'Are you sure you want to delete this faculty member? This cannot be undone.', () => {
+        fetch(`/api/admin/faculty/${id}`, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccessModal('Deleted', 'Faculty member deleted successfully');
+                    loadFacultyData();
+                    if (editModal) closeModal(editModal);
+                } else {
+                    showErrorModal('Error', data.error || 'Delete failed');
+                }
+            })
+            .catch(err => showErrorModal('Error', 'Failed to delete faculty'));
+    });
 }
 
 function addCourse() {
@@ -804,3 +1083,156 @@ document.addEventListener('DOMContentLoaded', function () {
         header.insertBefore(menuBtn, header.firstChild);
     }
 });
+// Examination Management Logic
+const EXAM_API = 'http://127.0.0.1:5001/api/admin/exams';
+
+function switchExamTab(tabName) {
+    // Buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.style.color = '#64748b';
+        btn.style.borderBottom = 'none';
+        btn.classList.remove('active');
+    });
+    const activeBtn = event.target;
+    activeBtn.style.color = '#2563eb';
+    activeBtn.style.borderBottom = '2px solid #2563eb';
+    activeBtn.classList.add('active');
+
+    // Content
+    document.querySelectorAll('.exam-tab-content').forEach(content => {
+        content.style.display = 'none';
+    });
+    document.getElementById(tabName).style.display = 'block';
+
+    // If Timetable tab, load subjects
+    if (tabName === 'timetable') {
+        loadSubjects();
+    }
+}
+
+// Load Subjects for Dropdown
+async function loadSubjects() {
+    const select = document.getElementById('timetableSubject');
+    if (select.options.length > 1) return; // Already loaded
+
+    try {
+        const res = await fetch(`${EXAM_API}/subjects`);
+        const subjects = await res.json();
+
+        subjects.forEach(sub => {
+            const option = document.createElement('option');
+            option.value = sub.id;
+            option.textContent = `${sub.name} (${sub.code})`;
+            select.appendChild(option);
+        });
+    } catch (err) {
+        console.error('Failed to load subjects', err);
+    }
+}
+
+// Create Schedule
+const createScheduleForm = document.getElementById('createScheduleForm');
+if (createScheduleForm) {
+    createScheduleForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            const res = await fetch(`${EXAM_API}/schedule`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (result.success) {
+                document.getElementById('scheduleResult').innerHTML = `<div style="color:green; margin-top:0.5rem; padding:0.5rem; background:#ecfdf5; border-radius:4px;">Success! Exam Schedule Created. ID: <strong>${result.id}</strong></div>`;
+                document.getElementById('timetableScheduleId').value = result.id;
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (err) {
+            alert('Failed to connect to Exam API. Make sure admin.py is running.');
+        }
+    });
+}
+
+// Timetable
+async function loadTimetable() {
+    const id = document.getElementById('timetableScheduleId').value;
+    if (!id) return alert('Enter Schedule ID');
+
+    try {
+        const res = await fetch(`${EXAM_API}/timetable/${id}`);
+        const data = await res.json();
+
+        document.getElementById('timetableWrapper').style.display = 'block';
+        const tbody = document.getElementById('timetableBody');
+        tbody.innerHTML = data.map(row => `
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 0.75rem;">${row.subject_name} <br><small style="color:#64748b">${row.subject_code}</small></td>
+                <td style="padding: 0.75rem;">${row.exam_date} <br><small>${row.start_time} - ${row.end_time}</small></td>
+                <td style="padding: 0.75rem;">${row.room_number}</td>
+                <td style="padding: 0.75rem;">${row.faculty_name}</td>
+            </tr>
+        `).join('');
+    } catch (err) { console.error(err); }
+}
+
+const timetableForm = document.getElementById('timetableForm');
+if (timetableForm) {
+    timetableForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        data.exam_schedule_id = document.getElementById('timetableScheduleId').value;
+
+        const res = await fetch(`${EXAM_API}/timetable`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (result.success) {
+            loadTimetable(); // Refresh
+            e.target.reset();
+        } else {
+            alert(result.error);
+        }
+    });
+}
+
+async function publishSchedule() {
+    const id = document.getElementById('timetableScheduleId').value;
+    if (confirm('Publish schedule? This will notify all students and faculty.')) {
+        const res = await fetch(`${EXAM_API}/publish/${id}`, { method: 'POST' });
+        const result = await res.json();
+        alert(result.message || result.error);
+    }
+}
+
+// Re-candidates
+async function loadReCandidates() {
+    const res = await fetch(`${EXAM_API}/re-candidates`);
+    const data = await res.json();
+    document.getElementById('reCandidatesBody').innerHTML = data.map(row => `
+        <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 0.75rem;">${row.student_name}</td>
+            <td style="padding: 0.75rem;">${row.roll_number}</td>
+            <td style="padding: 0.75rem;">${row.subject_name}</td>
+            <td style="padding: 0.75rem;">${row.marks_obtained}/${row.max_marks}</td>
+            <td style="padding: 0.75rem; color: #ef4444; font-weight: 500;">${row.status}</td>
+        </tr>
+    `).join('');
+}
+
+// Export
+function exportResults(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const dept = formData.get('department');
+    const sem = formData.get('semester');
+    window.location.href = `${EXAM_API}/results/export?department=${dept}&semester=${sem}`;
+}
+
+

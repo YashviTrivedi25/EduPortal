@@ -53,6 +53,10 @@ class Faculty(db.Model):
     designation = db.Column(db.String(50), nullable=False)
     experience_years = db.Column(db.Integer, default=0)
     specialization = db.Column(db.String(100))
+    # New fields for enhanced details
+    assigned_classes = db.Column(db.String(200)) # e.g., "CSE-A, CSE-B"
+    assigned_semesters = db.Column(db.String(100)) # e.g., "1st, 3rd"
+    assigned_subjects = db.Column(db.String(200)) # e.g., "Data Stuctures, Algorithms"
     
     user = db.relationship('User', backref=db.backref('faculty', uselist=False))
 
@@ -708,7 +712,7 @@ def get_notices():
             'content': notice.content,
             'notice_type': notice.notice_type,
             'created_at': notice.created_at.isoformat(),
-            'expires_at': notice.expires_at.isoformat() if notice.expires_at else Noneat() if notice.expires_at else None
+            'expires_at': notice.expires_at.isoformat() if notice.expires_at else None
         })
     
     return jsonify(notices_data)
@@ -754,6 +758,156 @@ def get_admin_stats():
         'total_courses': total_courses,
         'total_fee_collection': total_fee_collection
     })
+
+@app.route('/api/admin/faculty', methods=['GET'])
+def get_all_faculty():
+    faculty_list = Faculty.query.join(User).filter(User.is_active == True).all()
+    result = []
+    for f in faculty_list:
+        result.append({
+            'id': f.id,
+            'faculty_id': f.faculty_id,
+            'full_name': f.user.full_name,
+            'email': f.user.email,
+            'department': f.user.department,
+            'designation': f.designation,
+            'experience_years': f.experience_years,
+            'specialization': f.specialization,
+            'assigned_classes': f.assigned_classes,
+            'assigned_semesters': f.assigned_semesters,
+            'assigned_subjects': f.assigned_subjects,
+            'photo_url': 'https://via.placeholder.com/150' # Placeholder for now
+        })
+    return jsonify(result)
+
+@app.route('/api/admin/faculty', methods=['POST'])
+def add_faculty():
+    data = request.get_json()
+    
+    # Validation
+    required_fields = ['full_name', 'email', 'department', 'designation']
+    for field in required_fields:
+        if field not in data:
+            return jsonify({'error': f'Missing required field: {field}'}), 400
+            
+    # Check if user already exists
+    if User.query.filter_by(email=data['email']).first():
+        return jsonify({'error': 'Email already exists'}), 400
+        
+    username = data['email'].split('@')[0]
+    if User.query.filter_by(username=username).first():
+        # Append random number if username exists
+        import random
+        username = f"{username}{random.randint(100, 999)}"
+        
+    try:
+        # Create User
+        user = User(
+            username=username,
+            email=data['email'],
+            password_hash=generate_password_hash('faculty123'), # Default password
+            role='faculty',
+            full_name=data['full_name'],
+            department=data['department']
+        )
+        db.session.add(user)
+        db.session.flush() # Flush to get user.id
+        
+        # Generate Faculty ID (Simple logic: FAC + Year + Random)
+        import random
+        faculty_id = f"FAC{datetime.now().year}{random.randint(1000, 9999)}"
+        
+        # Create Faculty
+        faculty = Faculty(
+            user_id=user.id,
+            faculty_id=faculty_id,
+            designation=data['designation'],
+            experience_years=data.get('experience_years', 0),
+            specialization=data.get('specialization', ''),
+            assigned_classes=data.get('assigned_classes', ''),
+            assigned_semesters=data.get('assigned_semesters', ''),
+            assigned_subjects=data.get('assigned_subjects', '')
+        )
+        db.session.add(faculty)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Faculty added successfully', 'id': faculty.id})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/faculty/<int:id>', methods=['GET'])
+def get_faculty_details(id):
+    # 'id' here is the Faculty.id, but let's support searching by that.
+    faculty = Faculty.query.get_or_404(id)
+    return jsonify({
+        'id': faculty.id,
+        'faculty_id': faculty.faculty_id,
+        'full_name': faculty.user.full_name,
+        'email': faculty.user.email,
+        'department': faculty.user.department,
+        'designation': faculty.designation,
+        'experience_years': faculty.experience_years,
+        'specialization': faculty.specialization,
+        'assigned_classes': faculty.assigned_classes,
+        'assigned_semesters': faculty.assigned_semesters,
+        'assigned_subjects': faculty.assigned_subjects,
+        'user_id': faculty.user_id
+    })
+
+@app.route('/api/admin/faculty/<int:id>', methods=['PUT'])
+def update_faculty(id):
+    faculty = Faculty.query.get_or_404(id)
+    data = request.get_json()
+    
+    # Update User model fields
+    if 'full_name' in data:
+        faculty.user.full_name = data['full_name']
+    if 'email' in data:
+        # Check uniqueness if email is changed
+        if data['email'] != faculty.user.email:
+            if User.query.filter_by(email=data['email']).first():
+                 return jsonify({'error': 'Email already exists'}), 400
+            faculty.user.email = data['email']
+    if 'department' in data:
+        faculty.user.department = data['department']
+        
+    # Update Faculty model fields
+    if 'designation' in data:
+        faculty.designation = data['designation']
+    if 'experience_years' in data:
+        faculty.experience_years = data['experience_years']
+    if 'specialization' in data:
+        faculty.specialization = data['specialization']
+    
+    # Update new fields
+    if 'assigned_classes' in data:
+        faculty.assigned_classes = data['assigned_classes']
+    if 'assigned_semesters' in data:
+        faculty.assigned_semesters = data['assigned_semesters']
+    if 'assigned_subjects' in data:
+        faculty.assigned_subjects = data['assigned_subjects']
+        
+    try:
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Faculty updated successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/faculty/<int:id>', methods=['DELETE'])
+def delete_faculty(id):
+    faculty = Faculty.query.get_or_404(id)
+    user = faculty.user
+    
+    try:
+        # SOFT DELETE: Set is_active to False
+        user.is_active = False
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Faculty deleted successfully (Soft Delete)'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/change-password', methods=['POST'])
 def change_password():
@@ -832,6 +986,42 @@ def init_db():
     with app.app_context():
         db.create_all()
         
+        try:
+            with db.engine.connect() as conn:
+                def add_column_if_not_exists(table, column, definition):
+                    try:
+                        conn.execute(db.text(f"SELECT {column} FROM {table} LIMIT 1"))
+                    except:
+                        try:
+                            print(f"Migrating: Adding {column} to {table} table")
+                            conn.execute(db.text(f"ALTER TABLE {table} ADD COLUMN {column} {definition}"))
+                            conn.commit()
+                        except Exception as e:
+                            print(f"Failed to add {column}: {e}")
+
+                # Migration for Faculty table
+                add_column_if_not_exists('faculty', 'assigned_classes', 'VARCHAR(200)')
+                add_column_if_not_exists('faculty', 'assigned_semesters', 'VARCHAR(100)')
+                add_column_if_not_exists('faculty', 'assigned_subjects', 'VARCHAR(200)')
+                
+                # Migration for Student table
+                add_column_if_not_exists('student', 'photo_url', 'VARCHAR(500)')
+                add_column_if_not_exists('student', 'annual_income', 'FLOAT DEFAULT 0.0')
+                add_column_if_not_exists('student', 'category', 'VARCHAR(20)')
+                add_column_if_not_exists('student', 'gender', 'VARCHAR(10)')
+                add_column_if_not_exists('student', 'blood_group', 'VARCHAR(5)')
+                add_column_if_not_exists('student', 'emergency_contact', 'VARCHAR(15)')
+                add_column_if_not_exists('student', 'address', 'TEXT')
+
+                # Migration for Scholarship table
+                add_column_if_not_exists('scholarship', 'min_cgpa', 'FLOAT DEFAULT 0.0')
+                add_column_if_not_exists('scholarship', 'max_family_income', 'FLOAT DEFAULT 0.0')
+                add_column_if_not_exists('scholarship', 'eligible_categories', 'VARCHAR(200)')
+                add_column_if_not_exists('scholarship', 'eligible_genders', 'VARCHAR(50)')
+
+        except Exception as e:
+             print(f"Migration error: {e}")
+        
         # Create sample data if tables are empty
         if User.query.count() == 0:
             # Create admin user
@@ -875,7 +1065,10 @@ def init_db():
                 faculty_id='FAC001',
                 designation='Assistant Professor',
                 experience_years=5,
-                specialization='Data Structures and Algorithms'
+                specialization='Data Structures and Algorithms',
+                assigned_classes='CSE-A',
+                assigned_semesters='3rd',
+                assigned_subjects='Data Structures'
             )
             db.session.add(faculty_record)
             
