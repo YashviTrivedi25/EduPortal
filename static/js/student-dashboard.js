@@ -2152,3 +2152,51 @@ function injectDarkStyles() {
         document.head.appendChild(style);
     }
 }
+
+// Google Drive folder links
+const driveFolders = {
+    'DE': 'https://drive.google.com/drive/folders/1guTPdSVE-nHDqZhpwaFi68N-5-kHE92R?usp=drive_link',
+    'FSD': 'https://drive.google.com/drive/folders/1z1s0gjMWZ3bIgb5WUjTS1vLLm_K5-N_J?usp=drive_link',
+    'PS': 'https://drive.google.com/drive/folders/1qSvUhaDEmvynEdmGNVC_fNkzYOLGHD1I?usp=drive_link',
+    'PYTHON': 'https://drive.google.com/drive/folders/19xElaGMtLzc39tFnoBHcVG6t0RIHyBhN?usp=drive_link'
+};
+
+// Function to open Google Drive folder
+function openDriveFolder(subject) {
+    const url = driveFolders[subject];
+    if (url) {
+        // Show a brief loading message
+        const folderCard = event.target.closest('.folder-card');
+        if (folderCard) {
+            const originalContent = folderCard.innerHTML;
+            folderCard.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            folderCard.style.color = 'white';
+            folderCard.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <i class="fas fa-external-link-alt" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                    <p style="margin: 0; font-weight: 600;">Opening ${subject} Notes...</p>
+                    <small style="opacity: 0.8;">Redirecting to Google Drive</small>
+                </div>
+            `;
+            
+            // Restore original content after a brief delay
+            setTimeout(() => {
+                folderCard.style.background = 'white';
+                folderCard.style.color = '#333';
+                folderCard.innerHTML = originalContent;
+            }, 2000);
+        }
+        
+        // Open the Google Drive link in a new tab
+        window.open(url, '_blank');
+    } else {
+        alert('Drive folder link not found for ' + subject);
+    }
+}
+
+// Load notes function (placeholder for compatibility)
+function loadNotes() {
+    // This function is called when the notes section is shown
+    // The folder cards are already loaded in the HTML, so no additional loading needed
+    console.log('Notes section loaded - Google Drive folders ready');
+}

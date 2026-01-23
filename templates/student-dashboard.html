@@ -268,44 +268,64 @@
             <section id="notes" class="content-section">
                 <div class="section-header">
                     <h2>Study Materials</h2>
-                    <div class="filter-options">
-                        <select id="subjectFilter">
-                            <option value="all">All Subjects</option>
-                            <option value="math">Mathematics</option>
-                            <option value="physics">Physics</option>
-                            <option value="cs">Computer Science</option>
-                        </select>
-                        <select id="facultyFilter">
-                            <option value="all">All Faculty</option>
-                            <option value="prof1">Prof. Smith</option>
-                            <option value="prof2">Prof. Johnson</option>
-                        </select>
+                    <div class="notes-info">
+                        <span><i class="fas fa-cloud"></i> Access your subject notes from Google Drive</span>
                     </div>
                 </div>
 
-                <div class="notes-grid">
-                    <div class="note-card">
-                        <div class="note-icon">
-                            <i class="fas fa-file-pdf"></i>
+                <div class="notes-folders-grid">
+                    <div class="folder-card" onclick="openDriveFolder('DE')">
+                        <div class="folder-icon">
+                            <i class="fas fa-folder"></i>
                         </div>
-                        <h4>Calculus Chapter 5</h4>
-                        <p>Prof. Smith • Mathematics</p>
-                        <p class="upload-date">Uploaded: 2 days ago</p>
-                        <button class="download-note-btn">
-                            <i class="fas fa-download"></i> Download
-                        </button>
+                        <h4>Data Engineering (DE)</h4>
+                        <p>Complete notes and resources</p>
+                        <div class="folder-meta">
+                            <span><i class="fas fa-external-link-alt"></i> Google Drive</span>
+                        </div>
                     </div>
 
-                    <div class="note-card">
-                        <div class="note-icon">
-                            <i class="fas fa-file-pdf"></i>
+                    <div class="folder-card" onclick="openDriveFolder('FSD')">
+                        <div class="folder-icon">
+                            <i class="fas fa-folder"></i>
                         </div>
-                        <h4>Quantum Physics Notes</h4>
-                        <p>Prof. Johnson • Physics</p>
-                        <p class="upload-date">Uploaded: 1 week ago</p>
-                        <button class="download-note-btn">
-                            <i class="fas fa-download"></i> Download
-                        </button>
+                        <h4>Full Stack Development (FSD)</h4>
+                        <p>Complete notes and resources</p>
+                        <div class="folder-meta">
+                            <span><i class="fas fa-external-link-alt"></i> Google Drive</span>
+                        </div>
+                    </div>
+
+                    <div class="folder-card" onclick="openDriveFolder('PS')">
+                        <div class="folder-icon">
+                            <i class="fas fa-folder"></i>
+                        </div>
+                        <h4>Problem Solving (PS)</h4>
+                        <p>Complete notes and resources</p>
+                        <div class="folder-meta">
+                            <span><i class="fas fa-external-link-alt"></i> Google Drive</span>
+                        </div>
+                    </div>
+
+                    <div class="folder-card" onclick="openDriveFolder('PYTHON')">
+                        <div class="folder-icon">
+                            <i class="fas fa-folder"></i>
+                        </div>
+                        <h4>Python Programming</h4>
+                        <p>Complete notes and resources</p>
+                        <div class="folder-meta">
+                            <span><i class="fas fa-external-link-alt"></i> Google Drive</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="notes-help">
+                    <div class="help-card">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            <h5>How to Access Notes</h5>
+                            <p>Click on any subject folder above to access the complete collection of notes, assignments, and resources stored in Google Drive.</p>
+                        </div>
                     </div>
                 </div>
             </section>
