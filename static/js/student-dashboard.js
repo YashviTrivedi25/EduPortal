@@ -2632,6 +2632,18 @@ function renderThreadDetails(thread) {
             margin-bottom: 15px;
         `;
 
+        let attachmentHtml = '';
+        if (post.attachments && post.attachments.length > 0) {
+            post.attachments.forEach(att => {
+                const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(att.file_type.toLowerCase());
+                if (isImage) {
+                    attachmentHtml += `<div style="margin-top:8px;"><img src="${att.file_url}" style="max-width:100%; border-radius:8px; cursor:pointer;" onclick="window.open(this.src)"></div>`;
+                } else {
+                    attachmentHtml += `<div style="margin-top:8px;"><a href="${att.file_url}" target="_blank" style="text-decoration:none; color:${isMe ? '#0f5132' : '#0d6efd'}; font-size:0.9rem;"><i class="fas fa-file-download"></i> ${att.file_name}</a></div>`;
+                }
+            });
+        }
+
         div.innerHTML = `
             <div style="
                 background: ${isMe ? '#d1e7dd' : 'white'}; 
@@ -2646,6 +2658,7 @@ function renderThreadDetails(thread) {
                     ${post.author_name} <span style="font-weight: normal; color: #666; font-size: 0.7rem;">• ${post.role.toUpperCase()}</span>
                 </div>
                 <div style="white-space: pre-wrap;">${post.content}</div>
+                ${attachmentHtml}
                 <div style="font-size: 0.7rem; color: #888; text-align: right; margin-top: 5px;">${post.created_at}</div>
             </div>
         `;

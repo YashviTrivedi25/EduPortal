@@ -955,12 +955,25 @@ function openFacultyReplyModal(threadId) {
                         const div = document.createElement('div');
                         div.style.cssText = `display: flex; flex-direction: column; align-items: ${isMe ? 'flex-end' : 'flex-start'}; margin-bottom: 15px;`;
 
+                        let attachmentHtml = '';
+                        if (post.attachments && post.attachments.length > 0) {
+                            post.attachments.forEach(att => {
+                                const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(att.file_type.toLowerCase());
+                                if (isImage) {
+                                    attachmentHtml += `<div style="margin-top:8px;"><img src="${att.file_url}" style="max-width:100%; border-radius:8px; cursor:pointer;" onclick="window.open(this.src)"></div>`;
+                                } else {
+                                    attachmentHtml += `<div style="margin-top:8px;"><a href="${att.file_url}" target="_blank" style="text-decoration:none; color:${isMe ? '#333' : '#0d6efd'}; font-size:0.9rem;"><i class="fas fa-file-download"></i> ${att.file_name}</a></div>`;
+                                }
+                            });
+                        }
+
                         div.innerHTML = `
                             <div style="background: ${isMe ? '#e9ecef' : '#e3f2fd'}; color: #333; padding: 10px 15px; border-radius: 15px; border-${isMe ? 'bottom-right' : 'bottom-left'}-radius: 0; max-width: 80%;">
                                 <div style="font-weight: 600; font-size: 0.8rem; margin-bottom: 4px; color: ${isMe ? '#495057' : '#0d6efd'};">
                                     ${post.author_name} <span style="font-weight: normal; color: #888;">• ${post.role.toUpperCase()}</span>
                                 </div>
                                 <div style="white-space: pre-wrap;">${post.content}</div>
+                                ${attachmentHtml}
                                 <div style="font-size: 0.75rem; color: #999; text-align: right; margin-top: 5px;">${post.created_at}</div>
                             </div>
                         `;

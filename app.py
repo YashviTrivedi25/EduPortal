@@ -1701,12 +1701,21 @@ def get_query_thread_details(thread_id):
         
     posts_data = []
     for p in thread.posts:
+        atts = []
+        for a in p.attachments:
+            atts.append({
+                'file_url': a.file_url,
+                'file_name': a.file_name,
+                'file_type': a.file_type
+            })
+            
         posts_data.append({
             'id': p.id,
             'author_name': p.author.full_name,
             'role': p.role,
             'content': p.content,
-            'created_at': p.created_at.strftime('%Y-%m-%d %H:%M')
+            'created_at': p.created_at.strftime('%Y-%m-%d %H:%M'),
+            'attachments': atts
         })
         
     # Enhanced Context for Faculty
