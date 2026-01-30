@@ -1,4 +1,4 @@
-from extensions import db
+from app.extensions import db
 from datetime import datetime
 
 class User(db.Model):
@@ -235,7 +235,6 @@ class ExamSchedule(db.Model):
 class Exam(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     exam_schedule_id = db.Column(db.Integer, db.ForeignKey('exam_schedule.id'), nullable=False)
-    # subject_id removed as Subject table deleted
     subject_name = db.Column(db.String(100), nullable=False)
     faculty_id = db.Column(db.Integer, db.ForeignKey('faculty.id')) # Invigilator
     exam_date = db.Column(db.Date, nullable=False)
@@ -245,3 +244,21 @@ class Exam(db.Model):
     
     exam_schedule = db.relationship('ExamSchedule', backref='exams')
     faculty = db.relationship('Faculty', backref='invigilated_exams')
+
+class ExamTimetable(db.Model):
+    __tablename__ = 'exam_timetable'
+    id = db.Column(db.Integer, primary_key=True)
+    exam_schedule_id = db.Column(db.Integer, db.ForeignKey('exam_schedule.id'), nullable=False)
+    subject_id = db.Column(db.Integer, nullable=True) # Could be linked to a Subject table if exists, else raw
+    # Fallback to name if ID not used
+    subject_name = db.Column(db.String(100), nullable=True)
+    
+    exam_date = db.Column(db.Date, nullable=False)
+    start_time = db.Column(db.String(10), nullable=False) # e.g. "10:00"
+    end_time = db.Column(db.String(10), nullable=False)   # e.g. "13:00"
+    room_number = db.Column(db.String(50), nullable=False)
+    faculty_id = db.Column(db.Integer, db.ForeignKey('faculty.id')) # Invigilator
+    
+    # Relationships
+    exam_schedule = db.relationship('ExamSchedule', backref=db.backref('timetable_entries', lazy=True))
+    faculty = db.relationship('Faculty', backref='exam_duties')
